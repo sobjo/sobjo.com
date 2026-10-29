@@ -26,7 +26,7 @@ npm run generate:types
 npm run payload migrate:create
 ```
 
-and commit the new file in `src/migrations`. On Vercel, the `vercel-build` script runs `payload migrate` before `next build`, so the production database is updated on deploy (this needs `DATABASE_URL` set in the Vercel project).
+and commit the new file in `src/migrations`. On Vercel, the `vercel-build` script runs `payload migrate` before `next build` whenever `DATABASE_URL` is set, so the production database is updated on deploy. Without it, the site deploys with the placeholder content.
 
 ## Where things live
 
