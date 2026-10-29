@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import { useEffect, useRef } from 'react'
 
 import { site } from '@/content/site'
 
@@ -17,9 +18,22 @@ const NAV = [
 export function SiteHeader() {
   const pathname = usePathname()
   const isCurrent = (href: string) => pathname === href || pathname.startsWith(`${href}/`)
+  const ref = useRef<HTMLElement>(null)
+
+  // Publish the header's height so the home hero can fill exactly the rest of the screen.
+  useEffect(() => {
+    const header = ref.current
+    if (!header) return
+    const update = () =>
+      document.documentElement.style.setProperty('--header-h', `${header.getBoundingClientRect().height}px`)
+    const observer = new ResizeObserver(update)
+    observer.observe(header)
+    update()
+    return () => observer.disconnect()
+  }, [])
 
   return (
-    <header className="border-b-[1.5px] border-line bg-paper">
+    <header ref={ref} className="border-b-[1.5px] border-line bg-paper">
       <nav
         aria-label="Main"
         className="mono mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-1 px-3.5 text-xs font-bold"
