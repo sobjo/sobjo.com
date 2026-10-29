@@ -25,6 +25,21 @@
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
 }
 
+/* Header height, measured by SiteHeader once the page loads; these are close first guesses. */
+:root {
+  --header-h: 49px;
+}
+@media (max-width: 699px) {
+  :root {
+    --header-h: 97px;
+  }
+}
+@media (max-width: 429px) {
+  :root {
+    --header-h: 129px;
+  }
+}
+
 @layer base {
   /* The mockups use the browser's normal line height, not Tailwind's 1.5. */
   html {
@@ -217,4 +232,14 @@
 .richtext img {
   border-radius: 8px;
   border: 1.5px solid var(--color-line);
+}
+
+/* Screens too short for the full home intro: tall phones under 760px, wide screens under 560px. */
+@custom-variant short {
+  @media (orientation: portrait) and (max-height: 759px) {
+    @slot;
+  }
+  @media (orientation: landscape) and (max-height: 559px) {
+    @slot;
+  }
 }
