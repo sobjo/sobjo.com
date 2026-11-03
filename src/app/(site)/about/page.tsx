@@ -50,8 +50,12 @@ export default function AboutPage() {
                     {person.firstName} {person.lastName}
                   </h3>
                   <dl className="m-0 grid grid-cols-[100px_1fr] gap-x-3 gap-y-2 text-sm leading-normal">
-                    <dt className="mono pt-[3px] text-[10px] text-muted">Education</dt>
-                    <dd className="m-0">{person.education}</dd>
+                    {person.education && (
+                      <>
+                        <dt className="mono pt-[3px] text-[10px] text-muted">Education</dt>
+                        <dd className="m-0">{person.education}</dd>
+                      </>
+                    )}
                     <dt className="mono pt-[3px] text-[10px] text-muted">Work</dt>
                     <dd className="m-0">{person.work}</dd>
                     <dt className="mono pt-[3px] text-[10px] text-muted">On our builds</dt>

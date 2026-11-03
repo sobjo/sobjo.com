@@ -22,9 +22,9 @@ export const about = {
   photos: [
     {
       src: '/about/garden.jpg' as string | null,
-      alt: 'Gunnar and Ivanna smiling in a selfie in front of a garden pond',
+      alt: 'Gunnar and Ivanna smiling in a selfie by the pond at the Morikami Museum',
       placeholder: '[Couple photo 1]',
-      caption: '[Caption]' as string | null,
+      caption: 'Morikami Museum' as string | null,
       position: '50% 40%',
     },
     {
@@ -48,7 +48,8 @@ export interface Person {
   id: 'gunnar' | 'ivanna'
   firstName: string
   lastName: string
-  education: string
+  /** Leave null to hide the Education row. */
+  education: string | null
   work: string
   onOurBuilds: string
   photo: string | null
@@ -66,12 +67,12 @@ export const people: Person[] = [
   {
     id: 'gunnar',
     firstName: 'Gunnar',
-    lastName: '[Last name]',
-    education: '[Degree level], [Major] · [University]',
-    work: '[Job title] · [Company]',
-    onOurBuilds: '[1 to 2 lines, e.g. mechanical design and hardware]',
-    photo: '/about/gunnar.jpg',
-    photoPosition: '50% 28%',
+    lastName: 'Bjorkman',
+    education: null,
+    work: 'CAD Designer · Location Regal',
+    onOurBuilds: 'Mechanical design and CAD design',
+    photo: '/about/gunnar-cubli.jpg',
+    photoPosition: '50% 40%',
     photoAlt: 'Gunnar sitting on the floor, holding up the Cubli',
     cartoon: null,
     possessive: 'his',
@@ -81,10 +82,10 @@ export const people: Person[] = [
   {
     id: 'ivanna',
     firstName: 'Ivanna',
-    lastName: '[Last name]',
-    education: '[Degree level], Computer Engineering · [University]',
-    work: 'Software Engineer · [Company]',
-    onOurBuilds: '[1 to 2 lines, e.g. firmware and control code]',
+    lastName: 'Socarras',
+    education: 'B.Sc., Computer Engineering · University of Central Florida',
+    work: 'Software Engineer · Hybrid Enterprises LLC',
+    onOurBuilds: 'Hardware design and hardware/software integration',
     photo: '/about/ivanna.jpg',
     photoPosition: '56% 35%',
     photoAlt: 'Ivanna in a green knit bucket hat and green cardigan, smiling',
