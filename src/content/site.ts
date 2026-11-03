@@ -69,7 +69,7 @@ export const people: Person[] = [
     firstName: 'Gunnar',
     lastName: 'Bjorkman',
     education: null,
-    work: 'CAD Designer · Location Regal',
+    work: 'CAD Designer · Regal Boats',
     onOurBuilds: 'Mechanical design and CAD design',
     photo: '/about/gunnar-cubli.jpg',
     photoPosition: '50% 40%',
