@@ -7,7 +7,7 @@ import { usePageTransition } from '@/components/site/PageTransition'
 import { mountWorkshop } from './workshop-engine'
 
 const LABEL =
-  'Playable isometric workshop. A yellow robot arm follows your pointer. Pick up an item riding the conveyor (the Cheetah, our notebook, the plushies for About us, a breadboard for our bench, a letter for Say hi, or the Cubli) and drop it into the cardboard box to open that page. Every page is also linked in the cards below.'
+  'Playable isometric workshop. A yellow robot arm follows your pointer. Pick up an item riding the conveyor (the Cheetah, our notebook, the plushies for About us, a breadboard for our bench, a letter for Say hi, or the Cubli) and drop it into the cardboard box to open that page. Two cats, an orange tabby and a brown tabby with a white tummy, lounge on the floor. Every page is also linked in the cards below.'
 
 export function Workshop() {
   const svgRef = useRef<SVGSVGElement>(null)
@@ -39,6 +39,10 @@ export function Workshop() {
         className="absolute inset-0 block h-full w-full touch-pan-y select-none"
       >
         <defs>
+          <radialGradient id="sh-glow">
+            <stop offset="0" stopColor="#FFE98A" stopOpacity="0.55" />
+            <stop offset="1" stopColor="#FFE98A" stopOpacity="0" />
+          </radialGradient>
           <filter id="sh-blur" x="-30%" y="-80%" width="160%" height="260%">
             <feGaussianBlur stdDeviation="16" />
           </filter>
