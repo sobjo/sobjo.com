@@ -70,7 +70,7 @@ export const people: Person[] = [
     lastName: 'Bjorkman',
     education: null,
     work: 'CAD Designer · Regal Boats',
-    onOurBuilds: 'Mechanical design and CAD design',
+    onOurBuilds: 'Mechanical design, CAD design and hardware design',
     photo: '/about/gunnar-centered.jpg',
     photoPosition: '50% 50%',
     photoAlt: 'Gunnar sitting on the floor, holding up the Cubli',
