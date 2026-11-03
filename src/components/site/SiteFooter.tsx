@@ -15,7 +15,7 @@ export function SiteFooter() {
     <footer className="bg-ink text-line">
       <div className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-5 px-6 py-9">
         <div className="flex items-center gap-3.5">
-          <Logo size={44} withTape />
+          <Logo size={48} withTape />
           <div className="flex flex-col gap-1">
             <span className="hl text-[26px] text-white">{site.name}</span>
             <span className="mono text-[10px] text-steel">{site.tagline}</span>

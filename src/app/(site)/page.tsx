@@ -70,9 +70,9 @@ export default async function HomePage() {
           <h1 className="hl m-0 text-[clamp(32px,min(13vw,6.5svh),64px)] landscape:text-[clamp(28px,min(5.5vw,8.5svh),76px)]">
             Hi, we&apos;re
             <br />
-            <span className="text-ivanna">Ivanna</span> &amp;
+            <span className="text-gunnar">Gunnar</span> &amp;
             <br />
-            <span className="text-gunnar">Gunnar</span>.
+            <span className="text-ivanna">Ivanna</span>.
           </h1>
           <p className="mt-4 mb-0 text-base leading-[1.55] text-body short:hidden">
             Two engineers who build little robots together on nights and weekends. This is the room where we tinker, and
