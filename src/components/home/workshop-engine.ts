@@ -53,21 +53,26 @@ function n1(v: number) {
   return (Math.round(v * 10) / 10).toString()
 }
 
+const RW = 17 // room: a square floor, RW wide (x) and RD deep (y)
+const RD = 17
 const BY = 6.0 // belt: y range and depth
 const BD = 2.8
 const BELT_X0 = 2.4
-const BELT_X1 = 13.6
+const BELT_X1 = 11.6
 const BELT_Z = 2.6
-const BX = 14.2 // cardboard box
+const BX = BELT_X1 + 0.6 // cardboard box, just past the chute
 const BYb = 5.8
 const BW = 3.4
 const BH = 2.3
-const SHOULDER: Vec3 = [6.0, 3.2, 2.6]
-const L1 = 7.3
-const L2 = 9.3
+// The arm stands just behind the belt. Seen from this angle "behind" also shifts it right, so it
+// sits a little left of the belt's middle to look centered on it.
+const SHOULDER: Vec3 = [(BELT_X0 + BELT_X1) / 2 - 1.0, 4.4, 1.75]
+const L1 = 4.9
+const L2 = 6.2
+const REACH = 10 // how far from the shoulder (across the floor) the fingertips can go
 const HOVER_Z = 4.4 // fingertip height when empty
-const GRIP_OFFSET = 2.1 // fingertip -> wrist
-const PALM_OFFSET = 1.3 // fingertip -> palm bar
+const GRIP_OFFSET = 1.4 // fingertip -> wrist
+const PALM_OFFSET = 0.9 // fingertip -> palm bar
 const GRAY = ['#A3ADB9', '#8C97A4', '#76818E']
 const YEL = ['#F8D664', '#F2BE22', '#D9A40F']
 
@@ -135,16 +140,24 @@ function heart(p: Pt, s: number, col: string, o?: number) {
 }
 
 // ------------------------------------------------------------------ static layers
-/** The tools on the pegboard. Drawn twice: first as soft outlines (`shadow`), then for real. */
+const PEG_Y0 = 10.6 // pegboard and desk sit on the front half of the left wall
+const PEG_Y1 = 15.4
+/**
+ * The tools on the pegboard over the desk, on the left wall. `x` runs 1.0 to 5.8 along the board
+ * from its front end. Drawn twice: first as soft outlines (`shadow`), then for real.
+ */
+function onBoard(x: number, z: number): Pt {
+  return iso(0, PEG_Y1 + 1.0 - x, z)
+}
 function drawTools(shadow: boolean) {
   const W = (x: number, z: number): Pt => {
-    const p = iso(x, 0, z)
+    const p = onBoard(x, z)
     return shadow ? [p[0] + 2, p[1] + 2.5] : p
   }
   const c = (color: string) => (shadow ? '#C3CCD6' : color)
   const board = '#E9EEF5'
   const peg = (x: number, z: number) => {
-    if (!shadow) C(iso(x, 0, z), 1.8, '#76818E')
+    if (!shadow) C(onBoard(x, z), 1.8, '#76818E')
   }
   // hammer
   peg(1.55, 7.6)
@@ -247,30 +260,30 @@ function drawBack() {
   const D = 1.2 // floor slab depth
   // Walls: the inner faces, one L-shaped cap so the corner has no seam, and cut ends that run down
   // to the bottom of the floor slab so they line up with its sides.
-  P([iso(0, 0, 0), iso(20, 0, 0), iso(20, 0, H), iso(0, 0, H)], '#DCE3EA')
-  P([iso(0, 0, 0), iso(0, 14, 0), iso(0, 14, H), iso(0, 0, H)], '#D0D8E1')
-  P([iso(-T, -T, H), iso(20, -T, H), iso(20, 0, H), iso(0, 0, H), iso(0, 14, H), iso(-T, 14, H)], '#8C97A4')
-  P([iso(20, -T, -D), iso(20, 0, -D), iso(20, 0, H), iso(20, -T, H)], '#C9D2DC')
-  P([iso(-T, 14, -D), iso(0, 14, -D), iso(0, 14, H), iso(-T, 14, H)], '#B5BFCB')
+  P([iso(0, 0, 0), iso(RW, 0, 0), iso(RW, 0, H), iso(0, 0, H)], '#DCE3EA')
+  P([iso(0, 0, 0), iso(0, RD, 0), iso(0, RD, H), iso(0, 0, H)], '#D0D8E1')
+  P([iso(-T, -T, H), iso(RW, -T, H), iso(RW, 0, H), iso(0, 0, H), iso(0, RD, H), iso(-T, RD, H)], '#8C97A4')
+  P([iso(RW, -T, -D), iso(RW, 0, -D), iso(RW, 0, H), iso(RW, -T, H)], '#C9D2DC')
+  P([iso(-T, RD, -D), iso(0, RD, -D), iso(0, RD, H), iso(-T, RD, H)], '#B5BFCB')
   // floor slab
-  box(0, 0, -D, 20, 14, D, '#EEF2F5', '#B5BFCB', '#C9D2DC')
-  for (let gx = 2; gx < 20; gx += 2) L(iso(gx, 0, 0), iso(gx, 14, 0), 1, '#DCE3EA')
-  for (let gy = 2; gy < 14; gy += 2) L(iso(0, gy, 0), iso(20, gy, 0), 1, '#DCE3EA')
+  box(0, 0, -D, RW, RD, D, '#EEF2F5', '#B5BFCB', '#C9D2DC')
+  for (let g = 2; g < RW; g += 2) L(iso(g, 0, 0), iso(g, RD, 0), 1, '#DCE3EA')
+  for (let g = 2; g < RD; g += 2) L(iso(0, g, 0), iso(RW, g, 0), 1, '#DCE3EA')
   // baseboards
-  P([iso(0, 0, 0), iso(20, 0, 0), iso(20, 0, 0.5), iso(0, 0, 0.5)], '#C3CCD6')
-  P([iso(0, 0, 0), iso(0, 14, 0), iso(0, 14, 0.5), iso(0, 0, 0.5)], '#A3ADB9')
+  P([iso(0, 0, 0), iso(RW, 0, 0), iso(RW, 0, 0.5), iso(0, 0, 0.5)], '#C3CCD6')
+  P([iso(0, 0, 0), iso(0, RD, 0), iso(0, RD, 0.5), iso(0, 0, 0.5)], '#A3ADB9')
 
   // window, a sill deep enough for the plant, and light on the floor
-  P([iso(12.9, 0, 4.6), iso(18.4, 0, 4.6), iso(18.4, 0, 8.4), iso(12.9, 0, 8.4)], '#FFFFFF')
-  P([iso(13.2, 0, 4.9), iso(18.1, 0, 4.9), iso(18.1, 0, 8.1), iso(13.2, 0, 8.1)], '#A9D4F5')
-  P([iso(13.5, 0, 5.6), iso(15.1, 0, 7.8), iso(15.5, 0, 7.8), iso(13.9, 0, 5.6)], '#FFFFFF', 0.5)
-  L(iso(15.65, 0, 4.9), iso(15.65, 0, 8.1), 3, '#FFFFFF')
-  L(iso(13.2, 0, 6.5), iso(18.1, 0, 6.5), 3, '#FFFFFF')
-  box(12.7, 0, 4.4, 5.9, 0.9, 0.2, '#FFFFFF', '#E6ECF2', '#DCE3EA')
-  P([iso(13.6, 0.6, 0.01), iso(19.0, 0.6, 0.01), iso(19.8, 4.2, 0.01), iso(14.4, 4.2, 0.01)], '#FFFFFF', 0.55)
+  P([iso(8.3, 0, 4.6), iso(13.8, 0, 4.6), iso(13.8, 0, 8.4), iso(8.3, 0, 8.4)], '#FFFFFF')
+  P([iso(8.6, 0, 4.9), iso(13.5, 0, 4.9), iso(13.5, 0, 8.1), iso(8.6, 0, 8.1)], '#A9D4F5')
+  P([iso(8.9, 0, 5.6), iso(10.5, 0, 7.8), iso(10.9, 0, 7.8), iso(9.3, 0, 5.6)], '#FFFFFF', 0.5)
+  L(iso(11.05, 0, 4.9), iso(11.05, 0, 8.1), 3, '#FFFFFF')
+  L(iso(8.6, 0, 6.5), iso(13.5, 0, 6.5), 3, '#FFFFFF')
+  box(8.1, 0, 4.4, 5.9, 0.9, 0.2, '#FFFFFF', '#E6ECF2', '#DCE3EA')
+  P([iso(9.0, 0.6, 0.01), iso(14.4, 0.6, 0.01), iso(15.2, 4.2, 0.01), iso(9.8, 4.2, 0.01)], '#FFFFFF', 0.55)
   // plant on the sill
-  box(16.6, 0.15, 4.6, 0.65, 0.6, 0.6, '#5E3B1C', '#D4705B', '#C2523C')
-  const lf = iso(16.92, 0.45, 5.2)
+  box(12.0, 0.15, 4.6, 0.65, 0.6, 0.6, '#5E3B1C', '#D4705B', '#C2523C')
+  const lf = iso(12.32, 0.45, 5.2)
   const leaves: [number, number, string][] = [
     [-18, -26, '#2E7D6B'],
     [-5, -40, '#4E9A85'],
@@ -283,18 +296,29 @@ function drawBack() {
       `<path d="M${n1(lf[0])} ${n1(lf[1])}Q${n1(lf[0] + k[0] * 0.2)} ${n1(lf[1] + k[1] * 0.7)} ${n1(lf[0] + k[0])} ${n1(lf[1] + k[1])}Q${n1(lf[0] + k[0] * 0.9)} ${n1(lf[1] + k[1] * 0.4)} ${n1(lf[0])} ${n1(lf[1])}Z" fill="${k[2]}" stroke="${k[2]}" stroke-width="3" stroke-linejoin="round"/>`,
     )
   }
+  wallText(iso(1.6, 0, 8.75), 'SOBJO WORKSHOP', 34, '#1C2128', 'hl')
 
-  // pegboard over the desk, with tools hanging on it
-  P([iso(0.85, 0, 5.15), iso(5.95, 0, 5.15), iso(5.95, 0, 8.05), iso(0.85, 0, 8.05)], '#C3CCD6')
-  P([iso(1.0, 0, 5.3), iso(5.8, 0, 5.3), iso(5.8, 0, 7.9), iso(1.0, 0, 7.9)], '#E9EEF5')
-  for (let px = 1.3; px < 5.6; px += 0.5) for (let pz = 5.55; pz < 7.8; pz += 0.5) C(iso(px, 0, pz), 1.2, '#D0D8E1')
-  drawTools(true)
-  drawTools(false)
-  wallText(iso(2.7, 0, 8.75), 'SOBJO WORKSHOP', 34, '#1C2128', 'hl')
+  // floor lamp standing against the back wall, right of the window
+  const LX = 15.5
+  const LY = 0.75
+  const lampFoot = iso(LX, LY, 0)
+  raw(`<ellipse cx="${n1(lampFoot[0])}" cy="${n1(lampFoot[1])}" rx="70" ry="34" fill="url(#sh-glow)"/>`)
+  raw(`<ellipse cx="${n1(lampFoot[0] + 2)}" cy="${n1(lampFoot[1] + 2)}" rx="15" ry="7" fill="#1C2128" opacity="0.18"/>`)
+  raw(`<ellipse cx="${n1(lampFoot[0])}" cy="${n1(lampFoot[1])}" rx="13" ry="6" fill="#2A2F36"/>`)
+  raw(`<ellipse cx="${n1(lampFoot[0])}" cy="${n1(lampFoot[1] - 2)}" rx="13" ry="6" fill="#3A414B"/>`)
+  L(iso(LX, LY, 0.1), iso(LX, LY, 6.0), 3, '#3A414B')
+  const shade = iso(LX, LY, 6.3)
+  raw(`<circle cx="${n1(shade[0])}" cy="${n1(shade[1] + 4)}" r="52" fill="url(#sh-glow)"/>`)
+  raw(
+    `<path d="M${n1(shade[0] - 11)} ${n1(shade[1] - 14)}L${n1(shade[0] + 11)} ${n1(shade[1] - 14)}L${n1(shade[0] + 21)} ${n1(shade[1] + 8)}L${n1(shade[0] - 21)} ${n1(shade[1] + 8)}Z" fill="#F2BE22"/>` +
+      `<path d="M${n1(shade[0])} ${n1(shade[1] - 14)}L${n1(shade[0] + 11)} ${n1(shade[1] - 14)}L${n1(shade[0] + 21)} ${n1(shade[1] + 8)}L${n1(shade[0])} ${n1(shade[1] + 8)}Z" fill="#D9A40F"/>` +
+      `<ellipse cx="${n1(shade[0])}" cy="${n1(shade[1] - 14)}" rx="11" ry="3.5" fill="#F8D664"/>` +
+      `<ellipse cx="${n1(shade[0])}" cy="${n1(shade[1] + 8)}" rx="21" ry="5.5" fill="#FFF3BF"/>`,
+  )
 
-  // poster on the side wall
+  // poster on the back half of the left wall
   onLeftWall(
-    iso(0, 6.2, 8.4),
+    iso(0, 4.6, 8.4),
     `<rect width="112" height="112" rx="2" fill="#FFFFFF"/>` +
       `<rect x="6" y="6" width="100" height="100" fill="#C2523C"/>` +
       `<circle cx="56" cy="44" r="27" fill="#F8D664"/>` +
@@ -308,9 +332,9 @@ function drawBack() {
       `<text x="56" y="100" text-anchor="middle" class="hl" font-size="15" fill="#FFFFFF">BUILDING</text>`,
   )
 
-  // cat clock on the side wall, tail swinging like a pendulum
+  // cat clock above the IN machine, tail swinging like a pendulum
   onLeftWall(
-    iso(0, 11.0, 6.7),
+    iso(0, 7.4, 7.7),
     `<g transform="scale(1.15)">` +
       `<g><path d="M0 12Q6 22 1 30Q-2 34 3 36" stroke="#F2BE22" stroke-width="4" fill="none" stroke-linecap="round"/>${sway(0, 12, 14, 2)}</g>` +
       `<path d="M-14 -9L-13 -25L-2 -16Z" fill="#F2BE22"/><path d="M14 -9L13 -25L2 -16Z" fill="#F2BE22"/>` +
@@ -326,59 +350,23 @@ function drawBack() {
       `<circle r="1.7" fill="#2A2F36"/></g>`,
   )
 
-  // desk in the back-left corner
-  shadow(0.4, 0.3, 4, 1.8, 0.12)
-  for (const l of [
-    [0.6, 0.5],
-    [4.0, 0.5],
-    [0.6, 1.8],
-    [4.0, 1.8],
-  ])
-    box(l[0], l[1], 0, 0.25, 0.25, 2.8, GRAY[0], GRAY[1], GRAY[2])
-  box(0.4, 0.3, 2.8, 4.1, 1.9, 0.2, '#F7F9FB', '#C3CCD6', '#A3ADB9')
-  rim(0.4, 0.3, 3.0, 4.1, 1.9)
-  box(1.2, 0.8, 3.0, 1.8, 1.1, 0.08, '#5E6875', '#3A414B', '#2A2F36')
-  P([iso(1.2, 0.8, 3.08), iso(3.0, 0.8, 3.08), iso(3.0, 0.5, 4.3), iso(1.2, 0.5, 4.3)], '#3A414B')
-  P([iso(1.35, 0.78, 3.2), iso(2.85, 0.78, 3.2), iso(2.85, 0.52, 4.18), iso(1.35, 0.52, 4.18)], '#A9D4F5')
-  L(iso(1.6, 0.72, 3.8), iso(2.4, 0.72, 3.8), 2, '#3B6FB6')
-  L(iso(1.6, 0.68, 3.55), iso(2.6, 0.68, 3.55), 2, '#C2523C')
-  box(3.4, 1.0, 3.0, 0.45, 0.45, 0.55, '#3A2414', '#F7F9FB', '#DCE3EA')
-  L(iso(3.62, 1.2, 3.7), iso(3.55, 1.1, 4.1), 1.5, '#A3ADB9', 0.7)
-  box(0.6, 0.5, 3.0, 0.5, 0.5, 0.1, '#5E6875', '#3A414B', '#2A2F36')
-  L(iso(0.85, 0.75, 3.1), iso(0.85, 0.75, 4.6), 3, '#3A414B')
-  L(iso(0.85, 0.75, 4.6), iso(1.6, 1.0, 4.9), 3, '#3A414B')
-  P([iso(1.4, 0.9, 4.6), iso(2.0, 1.1, 4.6), iso(1.8, 1.1, 5.1), iso(1.3, 0.9, 5.0)], '#C2523C')
+  // pegboard over the desk on the front half of the left wall, with tools hanging on it
+  P([iso(0, PEG_Y0 - 0.15, 5.15), iso(0, PEG_Y1 + 0.15, 5.15), iso(0, PEG_Y1 + 0.15, 8.05), iso(0, PEG_Y0 - 0.15, 8.05)], '#C3CCD6')
+  P([iso(0, PEG_Y0, 5.3), iso(0, PEG_Y1, 5.3), iso(0, PEG_Y1, 7.9), iso(0, PEG_Y0, 7.9)], '#E9EEF5')
+  for (let px = 1.3; px < 5.6; px += 0.5) for (let pz = 5.55; pz < 7.8; pz += 0.5) C(onBoard(px, pz), 1.2, '#D0D8E1')
+  drawTools(true)
+  drawTools(false)
 
-  // the brown cat lies at the front edge of the desk, in front of its legs
-  drawBrownCat(iso(1.6, 2.3, 0))
-
-  // floor lamp in the clear spot right of the box
-  const lampFoot = iso(19.2, 4.4, 0)
-  raw(`<ellipse cx="${n1(lampFoot[0])}" cy="${n1(lampFoot[1])}" rx="70" ry="34" fill="url(#sh-glow)"/>`)
-  raw(`<ellipse cx="${n1(lampFoot[0] + 2)}" cy="${n1(lampFoot[1] + 2)}" rx="15" ry="7" fill="#1C2128" opacity="0.18"/>`)
-  raw(`<ellipse cx="${n1(lampFoot[0])}" cy="${n1(lampFoot[1])}" rx="13" ry="6" fill="#2A2F36"/>`)
-  raw(`<ellipse cx="${n1(lampFoot[0])}" cy="${n1(lampFoot[1] - 2)}" rx="13" ry="6" fill="#3A414B"/>`)
-  L(iso(19.2, 4.4, 0.1), iso(19.2, 4.4, 6.0), 3, '#3A414B')
-  const shade = iso(19.2, 4.4, 6.3)
-  raw(`<circle cx="${n1(shade[0])}" cy="${n1(shade[1] + 4)}" r="46" fill="url(#sh-glow)"/>`)
-  raw(
-    `<path d="M${n1(shade[0] - 11)} ${n1(shade[1] - 14)}L${n1(shade[0] + 11)} ${n1(shade[1] - 14)}L${n1(shade[0] + 21)} ${n1(shade[1] + 8)}L${n1(shade[0] - 21)} ${n1(shade[1] + 8)}Z" fill="#F2BE22"/>` +
-      `<path d="M${n1(shade[0])} ${n1(shade[1] - 14)}L${n1(shade[0] + 11)} ${n1(shade[1] - 14)}L${n1(shade[0] + 21)} ${n1(shade[1] + 8)}L${n1(shade[0])} ${n1(shade[1] + 8)}Z" fill="#D9A40F"/>` +
-      `<ellipse cx="${n1(shade[0])}" cy="${n1(shade[1] - 14)}" rx="11" ry="3.5" fill="#F8D664"/>` +
-      `<ellipse cx="${n1(shade[0])}" cy="${n1(shade[1] + 8)}" rx="21" ry="5.5" fill="#FFF3BF"/>`,
-  )
-
-  // robot arm base (behind the belt)
-  shadow(4.8, 2.0, 2.4, 2.4, 0.18)
-  box(4.8, 2.0, 0, 2.4, 2.4, 1.0, GRAY[0], GRAY[1], GRAY[2])
-  rim(4.8, 2.0, 1.0, 2.4, 2.4)
-  box(5.2, 2.4, 1.0, 1.6, 1.6, 1.0, YEL[0], YEL[1], YEL[2])
-  rim(5.2, 2.4, 2.0, 1.6, 1.6)
-  for (const b of [
-    [5.0, 4.25],
-    [7.05, 2.2],
-  ])
-    C(iso(b[0], b[1], 0.5), 3, '#5E6875')
+  // robot arm base, just behind the belt
+  const bx = SHOULDER[0] - 0.8
+  const by = SHOULDER[1] - 0.8
+  shadow(bx, by, 1.6, 1.6, 0.18)
+  box(bx, by, 0, 1.6, 1.6, 0.7, GRAY[0], GRAY[1], GRAY[2])
+  rim(bx, by, 0.7, 1.6, 1.6)
+  box(bx + 0.27, by + 0.27, 0.7, 1.07, 1.07, 0.7, YEL[0], YEL[1], YEL[2])
+  rim(bx + 0.27, by + 0.27, 1.4, 1.07, 1.07)
+  C(iso(bx + 0.13, by + 1.5, 0.35), 2.2, '#5E6875')
+  C(iso(bx + 1.5, by + 0.13, 0.35), 2.2, '#5E6875')
   return buf.join('')
 }
 
@@ -406,7 +394,7 @@ function drawMid() {
     `<text transform="matrix(0.866 0.5 0 1 ${n1(inLabel[0])} ${n1(inLabel[1])})" class="mono" font-size="13" font-weight="700" fill="#1C2128">IN ▸</text>`,
   )
   // legs + belt body
-  for (const lx of [4, 7, 10, 12.9]) {
+  for (const lx of [3.6, 6.3, 8.9, BELT_X1 - 0.7]) {
     shadow(lx, BY + 0.2, 0.3, 2.4, 0.1)
     box(lx, BY + 0.2, 0, 0.3, 0.3, 2, GRAY[0], GRAY[1], GRAY[2])
     box(lx, BY + BD - 0.5, 0, 0.3, 0.3, 2, GRAY[0], GRAY[1], GRAY[2])
@@ -420,13 +408,15 @@ function drawMid() {
   P([iso(BX, BYb, BH), iso(BX + BW, BYb, BH), iso(BX + BW, BYb, 0.8), iso(BX, BYb, 0.8)], '#8A5A2B')
   P([iso(BX, BYb, BH), iso(BX, BYb + BW, BH), iso(BX, BYb + BW, 0.8), iso(BX, BYb, 0.8)], '#7E5428')
   // chute
-  P([iso(13.6, BY + 0.3, 2.6), iso(15.0, BY + 0.3, 2.0), iso(15.0, BY + BD - 0.3, 2.0), iso(13.6, BY + BD - 0.3, 2.6)], '#C3CCD6')
+  const CH0 = BELT_X1
+  const CH1 = BELT_X1 + 1.4
+  P([iso(CH0, BY + 0.3, 2.6), iso(CH1, BY + 0.3, 2.0), iso(CH1, BY + BD - 0.3, 2.0), iso(CH0, BY + BD - 0.3, 2.6)], '#C3CCD6')
   P(
-    [iso(13.6, BY + BD - 0.3, 2.6), iso(15.0, BY + BD - 0.3, 2.0), iso(15.0, BY + BD - 0.3, 2.3), iso(13.6, BY + BD - 0.3, 2.9)],
+    [iso(CH0, BY + BD - 0.3, 2.6), iso(CH1, BY + BD - 0.3, 2.0), iso(CH1, BY + BD - 0.3, 2.3), iso(CH0, BY + BD - 0.3, 2.9)],
     '#8C97A4',
   )
   for (let cr = 0; cr < 3; cr++)
-    L(iso(13.8 + cr * 0.4, BY + 0.4, 2.52 - cr * 0.17), iso(13.8 + cr * 0.4, BY + BD - 0.4, 2.52 - cr * 0.17), 2, '#A3ADB9')
+    L(iso(CH0 + 0.2 + cr * 0.4, BY + 0.4, 2.52 - cr * 0.17), iso(CH0 + 0.2 + cr * 0.4, BY + BD - 0.4, 2.52 - cr * 0.17), 2, '#A3ADB9')
   return buf.join('')
 }
 
@@ -449,8 +439,36 @@ function drawFront() {
   raw(
     `<text transform="matrix(0.866 0.5 0 1 ${n1(sorted[0])} ${n1(sorted[1])})" class="mono" font-size="12" font-weight="700" fill="#5A3B1E">SORTED</text>`,
   )
-  // the orange cat on the floor in front
-  drawOrangeCat(iso(15.4, 12.3, 0))
+  // desk against the left wall, under the pegboard, facing into the room
+  shadow(0.3, 10.8, 1.8, 4.0, 0.12)
+  for (const [lx, ly] of [
+    [0.5, 11.0],
+    [1.8, 11.0],
+    [0.5, 14.4],
+    [1.8, 14.4],
+  ])
+    box(lx, ly, 0, 0.25, 0.25, 2.8, GRAY[0], GRAY[1], GRAY[2])
+  box(0.3, 10.8, 2.8, 1.9, 4.1, 0.2, '#F7F9FB', '#C3CCD6', '#A3ADB9')
+  rim(0.3, 10.8, 3.0, 1.9, 4.1)
+  // desk lamp in the back corner of the desk
+  box(0.5, 11.0, 3.0, 0.5, 0.5, 0.1, '#5E6875', '#3A414B', '#2A2F36')
+  L(iso(0.75, 11.25, 3.1), iso(0.75, 11.25, 4.6), 3, '#3A414B')
+  L(iso(0.75, 11.25, 4.6), iso(1.0, 12.0, 4.9), 3, '#3A414B')
+  P([iso(0.9, 11.8, 4.6), iso(1.1, 12.4, 4.6), iso(1.1, 12.2, 5.1), iso(0.9, 11.7, 5.0)], '#C2523C')
+  // laptop, screen facing into the room
+  box(0.8, 11.6, 3.0, 1.1, 1.8, 0.08, '#5E6875', '#3A414B', '#2A2F36')
+  P([iso(0.8, 11.6, 3.08), iso(0.8, 13.4, 3.08), iso(0.5, 13.4, 4.3), iso(0.5, 11.6, 4.3)], '#3A414B')
+  P([iso(0.78, 11.75, 3.2), iso(0.78, 13.25, 3.2), iso(0.52, 13.25, 4.18), iso(0.52, 11.75, 4.18)], '#A9D4F5')
+  L(iso(0.62, 12.05, 3.8), iso(0.62, 12.85, 3.8), 2, '#3B6FB6')
+  L(iso(0.69, 12.05, 3.55), iso(0.69, 13.05, 3.55), 2, '#C2523C')
+  // coffee
+  box(1.0, 13.8, 3.0, 0.45, 0.45, 0.55, '#3A2414', '#F7F9FB', '#DCE3EA')
+  L(iso(1.2, 14.02, 3.7), iso(1.1, 13.95, 4.1), 1.5, '#A3ADB9', 0.7)
+
+  // the brown cat lies on the floor in front of the desk
+  drawBrownCat(iso(2.9, 13.4, 0))
+  // the orange cat sits on the floor in front of the belt
+  drawOrangeCat(iso(13.2, 12.4, 0))
   return buf.join('')
 }
 
@@ -553,7 +571,8 @@ export const ITEMS: WorkshopItemDef[] = [
 ]
 
 const VISIBLE = BELT_X1 - BELT_X0 - 1.0 // how far an item rides before slipping under
-const LOOP = 14.4 // full lap, including the hidden return
+const SPACING = 2.2 // between items on the belt
+const LOOP = SPACING * 6 // full lap, including the hidden return
 
 type Mode = 'belt' | 'held' | 'fall' | 'sorted' | 'floor'
 interface Item {
@@ -582,7 +601,7 @@ export function mountWorkshop(svg: SVGSVGElement, opts: WorkshopOptions): () => 
   const items: Item[] = ITEMS.map((def, i) => ({
     def,
     mode: 'belt',
-    pos: i * 2.4,
+    pos: i * SPACING,
     x: 0,
     y: 0,
     z: 0,
@@ -609,8 +628,8 @@ export function mountWorkshop(svg: SVGSVGElement, opts: WorkshopOptions): () => 
   }
 
   // ------------------------------------------------------------------ arm state
-  const G = { x: 15.9, y: 7.4, z: HOVER_Z } // fingertip point
-  let target = { x: 15.9, y: 7.4 }
+  const G = { x: BX + BW / 2, y: 7.4, z: HOVER_Z } // fingertip point
+  let target = { x: BX + BW / 2, y: 7.4 }
   let holding: Item | null = null
   let chase: Item | null = null
   let pendingDrop = false
@@ -623,7 +642,18 @@ export function mountWorkshop(svg: SVGSVGElement, opts: WorkshopOptions): () => 
     return holding ? Math.max(HOVER_Z, 3.9 + holding.def.h - 0.35) : HOVER_Z
   }
   function clampTarget(p: { x: number; y: number }) {
-    return { x: clamp(p.x, 1.6, 19.0), y: clamp(p.y, 5.0, 12.6) }
+    // the belt, the box and the floor around them; not over the desk by the left wall
+    let x = clamp(p.x, BELT_X0, RW - 1.2)
+    let y = clamp(p.y, 5.0, 11.5)
+    // keep the fingertips where the arm can actually reach
+    const dx = x - SHOULDER[0]
+    const dy = y - SHOULDER[1]
+    const d = Math.hypot(dx, dy)
+    if (d > REACH) {
+      x = SHOULDER[0] + (dx / d) * REACH
+      y = SHOULDER[1] + (dy / d) * REACH
+    }
+    return { x, y }
   }
 
   function solveElbow(W: Vec3): Vec3 {
@@ -838,22 +868,22 @@ export function mountWorkshop(svg: SVGSVGElement, opts: WorkshopOptions): () => 
 
     // layer: upper arm (sits behind the belt)
     buf = []
-    L([sh[0] + 6, sh[1] + 4], [el[0] + 6, el[1] + 4], 34, '#D9A40F')
-    L(sh, el, 32, '#F2BE22')
-    L([sh[0] - 9, sh[1]], [el[0] - 9, el[1]], 5, '#F8D664')
+    L([sh[0] + 4, sh[1] + 2.7], [el[0] + 4, el[1] + 2.7], 23, '#D9A40F')
+    L(sh, el, 21, '#F2BE22')
+    L([sh[0] - 6, sh[1]], [el[0] - 6, el[1]], 3.5, '#F8D664')
     const c1 = iso(
-      SHOULDER[0] + (El[0] - SHOULDER[0]) * 0.25 + 0.4,
+      SHOULDER[0] + (El[0] - SHOULDER[0]) * 0.25 + 0.27,
       SHOULDER[1] + (El[1] - SHOULDER[1]) * 0.25,
       SHOULDER[2] + (El[2] - SHOULDER[2]) * 0.25,
     )
     const c2 = iso(
-      SHOULDER[0] + (El[0] - SHOULDER[0]) * 0.7 + 0.4,
+      SHOULDER[0] + (El[0] - SHOULDER[0]) * 0.7 + 0.27,
       SHOULDER[1] + (El[1] - SHOULDER[1]) * 0.7,
       SHOULDER[2] + (El[2] - SHOULDER[2]) * 0.7,
     )
-    L(c1, c2, 3, '#2A2F36')
-    C(sh, 20, '#8C97A4')
-    C(sh, 8, '#5E6875')
+    L(c1, c2, 2, '#2A2F36')
+    C(sh, 13.5, '#8C97A4')
+    C(sh, 5.5, '#5E6875')
     layerArm.innerHTML = buf.join('')
 
     // layer: belt surface, items on the belt, things falling into the box
@@ -895,21 +925,21 @@ export function mountWorkshop(svg: SVGSVGElement, opts: WorkshopOptions): () => 
 
     // layer: forearm, gripper, held item, labels, toast
     buf = []
-    L([el[0] + 4, el[1] + 6], [wr[0] + 4, wr[1] + 6], 24, '#D9A40F')
-    L(el, wr, 22, '#F2BE22')
-    L([el[0] - 2, el[1] - 8], [wr[0] - 2, wr[1] - 8], 4, '#F8D664')
-    C(el, 15, '#8C97A4')
-    C(el, 6, '#5E6875')
-    C(wr, 11, '#2A2F36')
-    L(wr, gp, 8, '#5E6875')
-    const spread = holding ? Math.max(14, holding.def.w * 13) : chase ? 22 : 26
-    L([gp[0] - spread - 4, gp[1]], [gp[0] + spread + 4, gp[1]], 9, '#2A2F36')
+    L([el[0] + 2.7, el[1] + 4], [wr[0] + 2.7, wr[1] + 4], 16, '#D9A40F')
+    L(el, wr, 15, '#F2BE22')
+    L([el[0] - 1.3, el[1] - 5.3], [wr[0] - 1.3, wr[1] - 5.3], 3, '#F8D664')
+    C(el, 10, '#8C97A4')
+    C(el, 4, '#5E6875')
+    C(wr, 7.5, '#2A2F36')
+    L(wr, gp, 5.5, '#5E6875')
+    const spread = holding ? Math.max(10, holding.def.w * 9) : chase ? 15 : 17.5
+    L([gp[0] - spread - 3, gp[1]], [gp[0] + spread + 3, gp[1]], 6.5, '#2A2F36')
     if (holding) {
       const hb = itemBase(holding)
       holding.def.draw(hb[0], hb[1], hb[2])
     }
-    L([gp[0] - spread, gp[1]], [gp[0] - spread, gp[1] + 38], 6, '#8C97A4')
-    L([gp[0] + spread, gp[1]], [gp[0] + spread, gp[1] + 38], 6, '#8C97A4')
+    L([gp[0] - spread, gp[1]], [gp[0] - spread, gp[1] + 26], 4.5, '#8C97A4')
+    L([gp[0] + spread, gp[1]], [gp[0] + spread, gp[1] + 26], 4.5, '#8C97A4')
     // drop shadow marker under the gripper so you can tell where you are aiming
     const floorZ = overBox(G.x, G.y)
       ? BH
@@ -918,7 +948,7 @@ export function mountWorkshop(svg: SVGSVGElement, opts: WorkshopOptions): () => 
         : 0
     const aim = iso(G.x, G.y, floorZ)
     raw(
-      `<ellipse cx="${n1(aim[0])}" cy="${n1(aim[1])}" rx="16" ry="8" fill="none" stroke="${holding && overBox(G.x, G.y) ? '#C2523C' : '#1C2128'}" stroke-width="2" opacity="${holding ? 0.7 : 0.25}" stroke-dasharray="4 3"/>`,
+      `<ellipse cx="${n1(aim[0])}" cy="${n1(aim[1])}" rx="13" ry="6.5" fill="none" stroke="${holding && overBox(G.x, G.y) ? '#C2523C' : '#1C2128'}" stroke-width="2" opacity="${holding ? 0.7 : 0.25}" stroke-dasharray="4 3"/>`,
     )
 
     // name tags only for the item under the pointer or the one the arm is going for

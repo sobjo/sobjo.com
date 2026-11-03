@@ -31,8 +31,8 @@ export function Workshop() {
     <>
       <svg
         ref={svgRef}
-        // The left of the 1440-wide canvas is empty floor; crop it so the room can be bigger.
-        viewBox="470 0 978 860"
+        // Crop the 1440-wide canvas to the room so it can be drawn bigger.
+        viewBox="505 0 910 860"
         preserveAspectRatio="xMidYMid meet"
         role="img"
         aria-label={LABEL}
