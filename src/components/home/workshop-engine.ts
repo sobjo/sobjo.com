@@ -213,7 +213,7 @@ function drawOrangeCat(p: Pt) {
   )
 }
 
-/** A brown tabby with a white tummy, chin and paws, lying in a loaf. `p` is where she lies. */
+/** A brown tabby with a white tummy, chin and paws, lying in a loaf under the desk. `p` is where she lies. */
 function drawBrownCat(p: Pt) {
   raw(
     `<g transform="translate(${n1(p[0])} ${n1(p[1])}) scale(1.4)">` +
@@ -328,13 +328,13 @@ function drawBack() {
 
   // desk in the back-left corner
   shadow(0.4, 0.3, 4, 1.8, 0.12)
-  for (const l of [
-    [0.6, 0.5],
-    [4.0, 0.5],
-    [0.6, 1.8],
-    [4.0, 1.8],
-  ])
-    box(l[0], l[1], 0, 0.25, 0.25, 2.8, GRAY[0], GRAY[1], GRAY[2])
+  const deskLeg = (x: number, y: number) => box(x, y, 0, 0.25, 0.25, 2.8, GRAY[0], GRAY[1], GRAY[2])
+  deskLeg(0.6, 0.5)
+  deskLeg(4.0, 0.5)
+  // the brown cat hides under the desk, between the back and front legs
+  drawBrownCat(iso(1.6, 1.5, 0))
+  deskLeg(0.6, 1.8)
+  deskLeg(4.0, 1.8)
   box(0.4, 0.3, 2.8, 4.1, 1.9, 0.2, '#F7F9FB', '#C3CCD6', '#A3ADB9')
   rim(0.4, 0.3, 3.0, 4.1, 1.9)
   box(1.2, 0.8, 3.0, 1.8, 1.1, 0.08, '#5E6875', '#3A414B', '#2A2F36')
@@ -446,9 +446,8 @@ function drawFront() {
   raw(
     `<text transform="matrix(0.866 0.5 0 1 ${n1(sorted[0])} ${n1(sorted[1])})" class="mono" font-size="12" font-weight="700" fill="#5A3B1E">SORTED</text>`,
   )
-  // two cats on the floor
-  drawOrangeCat(iso(3.6, 12.2, 0))
-  drawBrownCat(iso(15.4, 12.3, 0))
+  // the orange cat on the floor in front
+  drawOrangeCat(iso(15.4, 12.3, 0))
   return buf.join('')
 }
 
