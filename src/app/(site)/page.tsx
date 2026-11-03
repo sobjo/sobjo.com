@@ -1,61 +1,14 @@
-import { IsoArt, type ArtName } from '@/components/art/ProjectArt'
 import { Workshop } from '@/components/home/Workshop'
 import { FadeLink } from '@/components/site/PageTransition'
 import { BuilderPill, Eyebrow, ProgressBar, StatusBadge, Wrap } from '@/components/ui/bits'
-import { PostCard } from '@/components/ui/PostCard'
 import { ProjectMedia } from '@/components/ui/ProjectMedia'
 import { site } from '@/content/site'
-import { getPosts, getProjects } from '@/lib/content'
+import { getProjects } from '@/lib/content'
 
 export const revalidate = 300
 
-const ROOMS: { href: string; art: ArtName; eyebrow: string; title: string; blurb: string }[] = [
-  {
-    href: '/projects/cheetah',
-    art: 'cheetah',
-    eyebrow: 'Project · On the bench',
-    title: 'Cheetah',
-    blurb: 'Our current build, still learning to walk.',
-  },
-  {
-    href: '/projects/cubli',
-    art: 'cube',
-    eyebrow: 'Project · Finished',
-    title: 'Cubli',
-    blurb: "A cube that balances on one corner. Here's how we built it.",
-  },
-  {
-    href: '/about',
-    art: 'plushies',
-    eyebrow: 'Page · About us',
-    title: 'About us',
-    blurb: "That's the two of us. How we started building together, and who does what.",
-  },
-  {
-    href: '/bench',
-    art: 'breadboard',
-    eyebrow: 'Page · Our bench',
-    title: 'Bench',
-    blurb: 'The lab equipment, parts and software behind every build.',
-  },
-  {
-    href: '/notebook',
-    art: 'books',
-    eyebrow: 'Page · Notebook',
-    title: 'Notebook',
-    blurb: 'Build logs, things that broke, how we fixed them, and small wins.',
-  },
-  {
-    href: '/say-hi',
-    art: 'letter',
-    eyebrow: 'Page · Contact',
-    title: 'Say hi',
-    blurb: 'Questions about a build, an idea, or just hello. We read everything.',
-  },
-]
-
 export default async function HomePage() {
-  const [projects, posts] = await Promise.all([getProjects(), getPosts(3)])
+  const projects = await getProjects()
   const featured = projects.filter((p) => p.featured).slice(0, 2)
 
   return (
@@ -90,32 +43,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section id="line" className="border-t-[1.5px] border-line bg-white">
-        <Wrap className="py-16">
-          <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <Eyebrow className="mb-2.5">What&apos;s on the line</Eyebrow>
-              <h2 className="hl m-0 text-[40px] md:text-[52px]">Six things. Six rooms.</h2>
-            </div>
-            <p className="m-0 max-w-[420px] text-[15px] leading-[1.55] text-body">
-              Sort one into the box and it takes you there. Or skip the game and click a card, we won&apos;t tell the
-              arm.
-            </p>
-          </div>
-          <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(340px,100%),1fr))]">
-            {ROOMS.map((room) => (
-              <FadeLink key={room.href} href={room.href} className="card flex items-center gap-4 p-4">
-                <IsoArt name={room.art} className="flex-none rounded-md bg-paper" />
-                <div className="flex min-w-0 flex-col gap-1.5">
-                  <span className="mono text-[10px] text-muted">{room.eyebrow}</span>
-                  <span className="hl text-[30px]">{room.title}</span>
-                  <span className="text-sm leading-[1.45] text-body">{room.blurb}</span>
-                </div>
-              </FadeLink>
-            ))}
-          </div>
-        </Wrap>
-      </section>
 
       <section className="dots border-y-[1.5px] border-line">
         <Wrap className="flex flex-wrap items-start gap-10 py-16">
@@ -162,28 +89,6 @@ export default async function HomePage() {
         </Wrap>
       </section>
 
-      <section className="bg-white">
-        <Wrap className="py-16">
-          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <Eyebrow className="mb-2.5">From the notebook</Eyebrow>
-              <h2 className="hl m-0 text-[40px] md:text-[52px]">Latest entries</h2>
-            </div>
-            <FadeLink href="/notebook" className="ulink py-2.5">
-              Read the notebook →
-            </FadeLink>
-          </div>
-          {posts.length > 0 ? (
-            <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr))]">
-              {posts.map((post) => (
-                <PostCard key={post.slug} post={post} />
-              ))}
-            </div>
-          ) : (
-            <p className="text-[15px] text-body">The first entry is still on the bench.</p>
-          )}
-        </Wrap>
-      </section>
     </>
   )
 }

@@ -7,7 +7,7 @@ import { usePageTransition } from '@/components/site/PageTransition'
 import { mountWorkshop } from './workshop-engine'
 
 const LABEL =
-  'Playable isometric workshop. A yellow robot arm follows your pointer. Pick up an item riding the conveyor (the Cheetah, our notebook, the plushies for About us, a breadboard for our bench, a letter for Say hi, or the Cubli) and drop it into the cardboard box to open that page. An orange tabby sits on the floor, and a brown tabby with a white tummy lies in front of the desk. Every page is also linked in the cards below.'
+  'Playable isometric workshop. A yellow robot arm follows your pointer. Pick up an item riding the conveyor (the Cheetah, our notebook, the plushies for About us, a breadboard for our bench, a letter for Say hi, or the Cubli) and drop it into the cardboard box to open that page. An orange tabby sits on the floor, and a brown tabby with a white tummy lies in front of the desk.'
 
 export function Workshop() {
   const svgRef = useRef<SVGSVGElement>(null)

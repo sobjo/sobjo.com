@@ -921,7 +921,8 @@ export function mountWorkshop(svg: SVGSVGElement, opts: WorkshopOptions): () => 
       `<ellipse cx="${n1(aim[0])}" cy="${n1(aim[1])}" rx="16" ry="8" fill="none" stroke="${holding && overBox(G.x, G.y) ? '#C2523C' : '#1C2128'}" stroke-width="2" opacity="${holding ? 0.7 : 0.25}" stroke-dasharray="4 3"/>`,
     )
 
-    for (const it of items) if (it.mode === 'belt' && beltOpacity(it) > 0.05) tag(it, it === hover || it === chase)
+    // name tags only for the item under the pointer or the one the arm is going for
+    for (const it of items) if (it.mode === 'belt' && (it === hover || it === chase) && beltOpacity(it) > 0.05) tag(it, true)
     if (holding) tag(holding, true)
 
     if (navigating) {
