@@ -36,7 +36,14 @@ export function PinnedPhotos() {
             <span className={`mx-auto mb-2.5 block h-2.5 w-2.5 rounded-full ${frame.pin}`} />
             <div className={`relative flex items-center justify-center overflow-hidden ${frame.height} ${frame.tint}`}>
               {photo.src ? (
-                <Image src={photo.src} alt={photo.alt} fill sizes="300px" className="object-cover" />
+                <Image
+                  src={photo.src}
+                  alt={photo.alt}
+                  fill
+                  sizes="(max-width: 600px) 55vw, 300px"
+                  className="object-cover"
+                  style={{ objectPosition: photo.position }}
+                />
               ) : (
                 <span className="mono text-center text-[11px] text-muted">{photo.placeholder}</span>
               )}

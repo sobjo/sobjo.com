@@ -13,7 +13,14 @@ export function PhotoSwap({ person }: { person: Person }) {
     >
       <div className="absolute inset-0 flex items-center justify-center opacity-100 transition-opacity duration-[400ms] group-hover:opacity-0 group-focus-visible:opacity-0">
         {person.photo ? (
-          <Image src={person.photo} alt="" fill sizes="180px" className="object-cover" />
+          <Image
+            src={person.photo}
+            alt={person.photoAlt}
+            fill
+            sizes="180px"
+            className="object-cover"
+            style={{ objectPosition: person.photoPosition }}
+          />
         ) : (
           <span className="mono text-[11px] text-muted">[{person.firstName} photo]</span>
         )}
