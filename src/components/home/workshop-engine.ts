@@ -206,7 +206,7 @@ function drawOrangeCat(p: Pt) {
   raw(
     `<g transform="translate(${n1(p[0])} ${n1(p[1])}) scale(1.4)">` +
       `<ellipse cx="2" cy="0" rx="20" ry="5.5" fill="#1C2128" opacity="0.13"/>` +
-      `<g><path d="M10 -3C24 -2 27 -14 19 -21" fill="none" stroke="#E8913A" stroke-width="5" stroke-linecap="round"/>` +
+      `<g id="orange-cat-tail"><path d="M10 -3C24 -2 27 -14 19 -21" fill="none" stroke="#E8913A" stroke-width="5" stroke-linecap="round"/>` +
       `<path d="M21.5 -16C21 -19 20 -20 19 -21" fill="none" stroke="#C46A1E" stroke-width="5" stroke-linecap="round"/>${sway(10, -3, 9, 2.8)}</g>` +
       `<path d="M-12 -2C-14 -16 -9 -27 0 -27C9 -27 14 -16 12 -2Z" fill="#E8913A"/>` +
       `<path d="M-6 -3C-7 -12 -4 -19 0 -19C4 -19 7 -12 6 -3Z" fill="#F7D3A6"/>` +
@@ -231,7 +231,7 @@ function drawBrownCat(p: Pt) {
   raw(
     `<g transform="translate(${n1(p[0])} ${n1(p[1])}) scale(1.4)">` +
       `<ellipse cx="0" cy="0" rx="28" ry="6" fill="#1C2128" opacity="0.13"/>` +
-      `<g><path d="M-20 -5C-31 -1 -24 6 -7 4" fill="none" stroke="#9B7656" stroke-width="5" stroke-linecap="round"/>` +
+      `<g id="brown-cat-tail"><path d="M-20 -5C-31 -1 -24 6 -7 4" fill="none" stroke="#9B7656" stroke-width="5" stroke-linecap="round"/>` +
       `<path d="M-13 5C-10 4.6 -8.5 4.3 -7 4" fill="none" stroke="#5E4330" stroke-width="5" stroke-linecap="round"/>${sway(-20, -5, 5, 3.6)}</g>` +
       `<ellipse cx="-2" cy="-9" rx="22" ry="10" fill="#F7F4EF"/>` +
       `<path d="M-24 -10C-22 -23 18 -23 20 -10C12 -7 6 -11 -2 -9C-10 -7 -16 -11 -24 -10Z" fill="#9B7656"/>` +
@@ -336,7 +336,7 @@ function drawBack() {
   onLeftWall(
     iso(0, 7.4, 7.7),
     `<g transform="scale(1.15)">` +
-      `<g><path d="M0 12Q6 22 1 30Q-2 34 3 36" stroke="#F2BE22" stroke-width="4" fill="none" stroke-linecap="round"/>${sway(0, 12, 14, 2)}</g>` +
+      `<g id="clock-pendulum"><path d="M0 12Q6 22 1 30Q-2 34 3 36" stroke="#F2BE22" stroke-width="4" fill="none" stroke-linecap="round"/>${sway(0, 12, 14, 2)}</g>` +
       `<path d="M-14 -9L-13 -25L-2 -16Z" fill="#F2BE22"/><path d="M14 -9L13 -25L2 -16Z" fill="#F2BE22"/>` +
       `<path d="M-11.5 -12L-11 -21L-5 -16Z" fill="#F2A07B"/><path d="M11.5 -12L11 -21L5 -16Z" fill="#F2A07B"/>` +
       `<circle r="17" fill="#F2BE22"/><circle r="13.5" fill="#FFFFFF"/>` +
