@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
 
-import { Eyebrow, Wrap } from '@/components/ui/bits'
-import { PostCard } from '@/components/ui/PostCard'
-import { getPosts } from '@/lib/content'
+import { getPosts } from '@/shared/lib/content'
+import { Eyebrow } from '@/shared/ui/Eyebrow'
+import { PostCard } from '@/shared/ui/PostCard'
+import { Wrap } from '@/shared/ui/Wrap'
 
 export const metadata: Metadata = { title: 'Notebook' }
+/** Refresh the page from the CMS at most every 5 minutes. */
 export const revalidate = 300
 
 export default async function NotebookPage() {

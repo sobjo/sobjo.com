@@ -2,19 +2,27 @@ import { RichText } from '@payloadcms/richtext-lexical/react'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
-import { FadeLink } from '@/components/site/PageTransition'
-import { BuilderPill, Eyebrow, ProgressBar, StatusBadge, Wrap } from '@/components/ui/bits'
-import { PostCard } from '@/components/ui/PostCard'
-import { ProjectMedia } from '@/components/ui/ProjectMedia'
-import { getPostsForProject, getProject, getProjects } from '@/lib/content'
+import { FadeLink } from '@/shared/layout/PageTransition'
+import { getPostsForProject, getProject, getProjects } from '@/shared/lib/content'
+import { BuilderPill } from '@/shared/ui/BuilderPill'
+import { Eyebrow } from '@/shared/ui/Eyebrow'
+import { PostCard } from '@/shared/ui/PostCard'
+import { ProgressBar } from '@/shared/ui/ProgressBar'
+import { ProjectMedia } from '@/shared/ui/ProjectMedia'
+import { StatusBadge } from '@/shared/ui/StatusBadge'
+import { Wrap } from '@/shared/ui/Wrap'
 
+import { ProjectFacts } from './_components/ProjectFacts'
+
+/** Refresh the page from the CMS at most every 5 minutes. */
 export const revalidate = 300
 
 type Props = { params: Promise<{ slug: string }> }
 
+/** Builds a page for every project ahead of time. */
 export async function generateStaticParams() {
   const projects = await getProjects()
-  return projects.map((p) => ({ slug: p.slug }))
+  return projects.map((project) => ({ slug: project.slug }))
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -41,8 +49,8 @@ export default async function ProjectPage({ params }: Props) {
             </Eyebrow>
             <div className="mono flex flex-wrap items-center gap-2 text-[10px] text-muted">
               <StatusBadge status={project.status} />
-              {project.builders.map((b) => (
-                <BuilderPill key={b} builder={b} />
+              {project.builders.map((builder) => (
+                <BuilderPill key={builder} builder={builder} />
               ))}
               {project.year && <span>{project.year}</span>}
             </div>
@@ -81,24 +89,7 @@ export default async function ProjectPage({ params }: Props) {
               </p>
             )}
           </article>
-          {(project.role || project.tools) && (
-            <aside className="flex-[1_1_240px]">
-              <dl className="card m-0 flex flex-col gap-4 p-5">
-                {project.role && (
-                  <div className="flex flex-col gap-1">
-                    <dt className="mono text-[10px] text-muted">Role</dt>
-                    <dd className="m-0 text-sm">{project.role}</dd>
-                  </div>
-                )}
-                {project.tools && (
-                  <div className="flex flex-col gap-1">
-                    <dt className="mono text-[10px] text-muted">Tools</dt>
-                    <dd className="m-0 text-sm">{project.tools}</dd>
-                  </div>
-                )}
-              </dl>
-            </aside>
-          )}
+          <ProjectFacts role={project.role} tools={project.tools} />
         </Wrap>
       </section>
 

@@ -1,19 +1,22 @@
 import type { Metadata } from 'next'
 
-import { BenchProvider } from '@/components/bench/BenchContext'
-import { BenchScene } from '@/components/bench/BenchScene'
-import type { Pin } from '@/components/bench/bench-scene'
-import { EquipmentCard } from '@/components/bench/EquipmentCard'
-import { PartsGrid } from '@/components/bench/PartsGrid'
-import { Eyebrow, Wrap } from '@/components/ui/bits'
-import { getBench } from '@/lib/content'
-import { SOFTWARE_GROUPS } from '@/lib/labels'
-import type { BenchSpot } from '@/lib/types'
+import { getBench } from '@/shared/lib/content'
+import { Eyebrow } from '@/shared/ui/Eyebrow'
+import { Wrap } from '@/shared/ui/Wrap'
+
+import { BenchHighlightProvider } from './_components/BenchHighlight'
+import { BenchScene } from './_components/BenchScene'
+import { EquipmentCard } from './_components/EquipmentCard'
+import { PartsGrid } from './_components/PartsGrid'
+import { SoftwareGroupCard } from './_components/SoftwareGroupCard'
+import { groupSoftware, initialHighlight, pinsForEquipment } from './_lib/bench-page-data'
 
 export const metadata: Metadata = { title: 'Our bench' }
+/** Refresh the page from the CMS at most every 5 minutes. */
 export const revalidate = 300
 
-const JUMPS = [
+/** The "jump to section" links under the page title. */
+const SECTION_LINKS = [
   { href: '#equipment', label: '01 Lab equipment' },
   { href: '#hardware', label: '02 Hardware' },
   { href: '#software', label: '03 Software' },
@@ -21,18 +24,11 @@ const JUMPS = [
 
 export default async function BenchPage() {
   const { equipment, parts, software } = await getBench()
-  // Each card's number is pinned over its spot on the drawing; pieces with no card get no pin.
-  const pins: Pin[] = []
-  equipment.forEach((e, i) => {
-    if (e.spot && !pins.some((p) => p.spot === e.spot)) pins.push({ spot: e.spot, number: i + 1 })
-  })
-  const initial: BenchSpot | null = pins.some((p) => p.spot === 'printer') ? 'printer' : (pins[0]?.spot ?? null)
-  const softwareGroups = SOFTWARE_GROUPS.map((g) => ({ ...g, items: software.filter((s) => s.group === g.value) })).filter(
-    (g) => g.items.length > 0,
-  )
+  const pins = pinsForEquipment(equipment)
+  const softwareGroups = groupSoftware(software)
 
   return (
-    <BenchProvider initial={initial}>
+    <BenchHighlightProvider initial={initialHighlight(pins)}>
       <section className="dots border-b-[1.5px] border-line">
         <Wrap className="flex flex-wrap items-center gap-8 pt-10 pb-6">
           <div className="flex min-w-0 flex-[1_1_420px] flex-col gap-3.5">
@@ -47,13 +43,13 @@ export default async function BenchPage() {
               bench.
             </p>
             <nav aria-label="On this page" className="mono mt-1.5 flex flex-wrap gap-2 text-[11px] font-bold">
-              {JUMPS.map((j) => (
+              {SECTION_LINKS.map((link) => (
                 <a
-                  key={j.href}
-                  href={j.href}
+                  key={link.href}
+                  href={link.href}
                   className="rounded-md border-[1.5px] border-line bg-white px-3 py-2 no-underline"
                 >
-                  {j.label}
+                  {link.label}
                 </a>
               ))}
             </nav>
@@ -67,8 +63,8 @@ export default async function BenchPage() {
           <Eyebrow className="mb-2.5">01 · Lab equipment</Eyebrow>
           <h2 className="hl mt-0 mb-7 text-[40px] md:text-[52px]">The big stuff on the bench</h2>
           <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))]">
-            {equipment.map((item, i) => (
-              <EquipmentCard key={item.id} item={item} number={i + 1} />
+            {equipment.map((item, index) => (
+              <EquipmentCard key={item.id} item={item} number={index + 1} />
             ))}
           </div>
         </Wrap>
@@ -76,6 +72,7 @@ export default async function BenchPage() {
 
       <section id="hardware" className="dots scroll-mt-4 border-b-[1.5px] border-line">
         <Wrap className="py-16">
+          {/* The heading is passed in so it sits on the same row as the part filters. */}
           <PartsGrid
             parts={parts}
             heading={
@@ -100,27 +97,11 @@ export default async function BenchPage() {
           </p>
           <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr))]">
             {softwareGroups.map((group) => (
-              <div key={group.value} className="card flex flex-col gap-3.5 p-5">
-                <div className="flex items-center gap-2.5">
-                  <span className="h-3 w-3 rounded-[3px]" style={{ background: group.color }} />
-                  <span className="hl text-[26px]">{group.label}</span>
-                </div>
-                {group.items.map((item) => (
-                  <div key={item.id} className="flex items-start gap-3 border-t-[1.5px] border-mist pt-3">
-                    <span className="mono min-w-10 flex-none rounded bg-ink p-1.5 text-center text-[10px] font-bold text-butter">
-                      {item.tag || '·'}
-                    </span>
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-[15px] font-bold">{item.name}</span>
-                      {item.description && <span className="text-[13px] text-muted">{item.description}</span>}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <SoftwareGroupCard key={group.value} group={group} />
             ))}
           </div>
         </Wrap>
       </section>
-    </BenchProvider>
+    </BenchHighlightProvider>
   )
 }

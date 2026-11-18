@@ -6,12 +6,12 @@ import { buildConfig } from 'payload'
 import sharp from 'sharp'
 import { fileURLToPath } from 'url'
 
-import { Media } from './collections/Media'
-import { Messages } from './collections/Messages'
-import { Posts } from './collections/Posts'
-import { Projects } from './collections/Projects'
-import { Tools } from './collections/Tools'
-import { Users } from './collections/Users'
+import { Media } from './cms/collections/Media'
+import { Messages } from './cms/collections/Messages'
+import { Posts } from './cms/collections/Posts'
+import { Projects } from './cms/collections/Projects'
+import { Tools } from './cms/collections/Tools'
+import { Users } from './cms/collections/Users'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 

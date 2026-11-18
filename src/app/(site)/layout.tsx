@@ -2,13 +2,14 @@ import { Analytics } from '@vercel/analytics/next'
 import type { Metadata } from 'next'
 import { Archivo, JetBrains_Mono } from 'next/font/google'
 
-import { PageTransitionProvider } from '@/components/site/PageTransition'
-import { SiteFooter } from '@/components/site/SiteFooter'
-import { SiteHeader } from '@/components/site/SiteHeader'
 import { site } from '@/content/site'
+import { PageTransitionProvider } from '@/shared/layout/PageTransition'
+import { SiteFooter } from '@/shared/layout/SiteFooter'
+import { SiteHeader } from '@/shared/layout/SiteHeader'
 
 import './globals.css'
 
+// The two site fonts, exposed as CSS variables that globals.css maps to font-sans and font-mono.
 const archivo = Archivo({ subsets: ['latin'], axes: ['wdth'], variable: '--font-archivo', display: 'swap' })
 const jetbrains = JetBrains_Mono({
   subsets: ['latin'],
@@ -23,6 +24,7 @@ export const metadata: Metadata = {
   description: site.description,
 }
 
+/** Wraps every public page with the header, footer and page fade. The CMS admin has its own layout. */
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${archivo.variable} ${jetbrains.variable}`}>

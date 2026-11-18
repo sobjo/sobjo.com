@@ -3,18 +3,22 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 
-import { FadeLink } from '@/components/site/PageTransition'
-import { BuilderPill, Eyebrow, Wrap } from '@/components/ui/bits'
-import { entryLabel } from '@/components/ui/PostCard'
-import { getPost, getPosts } from '@/lib/content'
+import { FadeLink } from '@/shared/layout/PageTransition'
+import { getPost, getPosts } from '@/shared/lib/content'
+import { BuilderPill } from '@/shared/ui/BuilderPill'
+import { Eyebrow } from '@/shared/ui/Eyebrow'
+import { entryLabel } from '@/shared/ui/PostCard'
+import { Wrap } from '@/shared/ui/Wrap'
 
+/** Refresh the page from the CMS at most every 5 minutes. */
 export const revalidate = 300
 
 type Props = { params: Promise<{ slug: string }> }
 
+/** Builds a page for every published entry ahead of time. */
 export async function generateStaticParams() {
   const posts = await getPosts()
-  return posts.map((p) => ({ slug: p.slug }))
+  return posts.map((post) => ({ slug: post.slug }))
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -25,6 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function NotebookEntryPage({ params }: Props) {
   const post = await getPost((await params).slug)
   if (!post) notFound()
+  // "Nov 3, 2026 · 6 min", leaving out whatever is missing.
   const meta = [post.dateLabel, post.readLabel].filter(Boolean).join(' · ')
 
   return (

@@ -1,15 +1,19 @@
 import type { Metadata } from 'next'
 
-import { ProjectCard } from '@/components/projects/ProjectCard'
-import { ProjectList } from '@/components/projects/ProjectList'
-import { FadeLink } from '@/components/site/PageTransition'
-import { Eyebrow, Wrap } from '@/components/ui/bits'
-import { getProjects } from '@/lib/content'
+import { FadeLink } from '@/shared/layout/PageTransition'
+import { getProjects } from '@/shared/lib/content'
+import { Eyebrow } from '@/shared/ui/Eyebrow'
+import { Wrap } from '@/shared/ui/Wrap'
+
+import { ProjectCard } from './_components/ProjectCard'
+import { ProjectList } from './_components/ProjectList'
 
 export const metadata: Metadata = { title: 'Projects' }
+/** Refresh the page from the CMS at most every 5 minutes. */
 export const revalidate = 300
 
-const LEGEND = [
+/** The color key under the page title; it matches the status badges. */
+const STATUS_LEGEND = [
   { label: 'On the bench', swatch: 'bg-sun' },
   { label: 'Finished', swatch: 'bg-moss' },
   { label: 'Napkin sketch', swatch: 'border-[1.5px] border-dashed border-steel' },
@@ -17,7 +21,10 @@ const LEGEND = [
 
 export default async function ProjectsPage() {
   const projects = await getProjects()
-  const cards = Object.fromEntries(projects.map((p) => [p.slug, <ProjectCard key={p.slug} project={p} />]))
+  // The cards are rendered here on the server; ProjectList (a client component) only filters them.
+  const cardsBySlug = Object.fromEntries(
+    projects.map((project) => [project.slug, <ProjectCard key={project.slug} project={project} />]),
+  )
 
   return (
     <>
@@ -31,10 +38,10 @@ export default async function ProjectsPage() {
               the build log, what broke, and what we learned.
             </p>
             <div className="mono mt-1 flex flex-wrap gap-[18px] text-[11px] text-muted">
-              {LEGEND.map((l) => (
-                <span key={l.label} className="inline-flex items-center gap-2">
-                  <span className={`h-3 w-3 rounded-[3px] ${l.swatch}`} />
-                  {l.label}
+              {STATUS_LEGEND.map((entry) => (
+                <span key={entry.label} className="inline-flex items-center gap-2">
+                  <span className={`h-3 w-3 rounded-[3px] ${entry.swatch}`} />
+                  {entry.label}
                 </span>
               ))}
             </div>
@@ -44,7 +51,7 @@ export default async function ProjectsPage() {
 
       <section className="border-b-[1.5px] border-line bg-white">
         <Wrap width={1060} className="pt-12 pb-[72px]">
-          <ProjectList projects={projects} cards={cards} />
+          <ProjectList projects={projects} cards={cardsBySlug} />
         </Wrap>
       </section>
 

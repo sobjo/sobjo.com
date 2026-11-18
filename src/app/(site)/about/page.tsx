@@ -1,14 +1,17 @@
 import type { Metadata } from 'next'
 
-import { PhotoSwap } from '@/components/about/PhotoSwap'
-import { PinnedPhotos } from '@/components/about/PinnedPhotos'
-import { InterestIcon } from '@/components/art/InterestIcon'
-import { FadeLink } from '@/components/site/PageTransition'
-import { BuilderPill, Eyebrow, Wrap } from '@/components/ui/bits'
-import { about, interests, people } from '@/content/site'
+import { about, interests, people } from '@/content/about'
+import { FadeLink } from '@/shared/layout/PageTransition'
+import { Eyebrow } from '@/shared/ui/Eyebrow'
+import { Wrap } from '@/shared/ui/Wrap'
+
+import { InterestIcon } from './_components/InterestIcon'
+import { PersonCard } from './_components/PersonCard'
+import { PinnedPhotos } from './_components/PinnedPhotos'
 
 export const metadata: Metadata = { title: 'About us' }
 
+/** All the copy on this page comes from src/content/about.ts. */
 export default function AboutPage() {
   return (
     <>
@@ -37,40 +40,7 @@ export default function AboutPage() {
           <p className="mt-0 mb-7 text-[15px] text-body">Hover over a photo to meet our cartoon selves.</p>
           <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(380px,100%),1fr))]">
             {people.map((person) => (
-              <article
-                key={person.id}
-                className={`card flex flex-wrap gap-6 border-t-[6px]! p-6 ${person.id === 'gunnar' ? 'border-t-gunnar!' : 'border-t-ivanna!'}`}
-              >
-                <PhotoSwap person={person} />
-                <div className="flex min-w-0 flex-[1_1_220px] flex-col gap-3">
-                  <span className="mono self-start text-[11px]">
-                    <BuilderPill builder={person.id} />
-                  </span>
-                  <h3 className="hl m-0 text-[40px]">
-                    {person.firstName} {person.lastName}
-                  </h3>
-                  <dl className="m-0 grid grid-cols-[100px_1fr] gap-x-3 gap-y-2 text-sm leading-normal">
-                    {person.education && (
-                      <>
-                        <dt className="mono pt-[3px] text-[10px] text-muted">Education</dt>
-                        <dd className="m-0">{person.education}</dd>
-                      </>
-                    )}
-                    <dt className="mono pt-[3px] text-[10px] text-muted">Work</dt>
-                    <dd className="m-0">{person.work}</dd>
-                    <dt className="mono pt-[3px] text-[10px] text-muted">On our builds</dt>
-                    <dd className="m-0 text-body">{person.onOurBuilds}</dd>
-                  </dl>
-                  <div className="flex flex-wrap gap-5">
-                    <a href={person.linkedin} className="ulink py-2">
-                      LinkedIn
-                    </a>
-                    <a href={person.github} className="ulink py-2">
-                      GitHub
-                    </a>
-                  </div>
-                </div>
-              </article>
+              <PersonCard key={person.id} person={person} />
             ))}
           </div>
         </Wrap>

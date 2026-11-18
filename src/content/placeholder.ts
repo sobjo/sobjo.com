@@ -1,4 +1,4 @@
-import type { BenchContent, Post, Project } from '@/lib/types'
+import type { BenchContent, Post, Project } from '@/shared/lib/types'
 
 /**
  * The placeholder content from the original mockups. The site shows this when

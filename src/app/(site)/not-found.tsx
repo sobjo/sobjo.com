@@ -1,7 +1,9 @@
-import { IsoArt } from '@/components/art/ProjectArt'
-import { FadeLink } from '@/components/site/PageTransition'
-import { Eyebrow, Wrap } from '@/components/ui/bits'
+import { FadeLink } from '@/shared/layout/PageTransition'
+import { Eyebrow } from '@/shared/ui/Eyebrow'
+import { IsoArt } from '@/shared/ui/IsoArt'
+import { Wrap } from '@/shared/ui/Wrap'
 
+/** Shown for any address that doesn't match a page. */
 export default function NotFound() {
   return (
     <section className="dots">

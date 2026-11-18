@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 
-import { IsoArt } from '@/components/art/ProjectArt'
-import { FadeLink } from '@/components/site/PageTransition'
-import { Eyebrow, Wrap } from '@/components/ui/bits'
+import { FadeLink } from '@/shared/layout/PageTransition'
+import { Eyebrow } from '@/shared/ui/Eyebrow'
+import { IsoArt } from '@/shared/ui/IsoArt'
+import { Wrap } from '@/shared/ui/Wrap'
 
 export const metadata: Metadata = { title: 'Say hi' }
 
