@@ -4,12 +4,10 @@ import { getBench } from '@/shared/lib/content'
 import { Eyebrow } from '@/shared/ui/Eyebrow'
 import { Wrap } from '@/shared/ui/Wrap'
 
-import { BenchHighlightProvider } from './_components/BenchHighlight'
-import { BenchScene } from './_components/BenchScene'
 import { EquipmentCard } from './_components/EquipmentCard'
 import { PartsGrid } from './_components/PartsGrid'
 import { SoftwareGroupCard } from './_components/SoftwareGroupCard'
-import { groupSoftware, initialHighlight, pinsForEquipment } from './_lib/bench-page-data'
+import { groupSoftware } from './_lib/bench-page-data'
 
 export const metadata: Metadata = { title: 'Our bench' }
 /** Refresh the page from the CMS at most every 5 minutes. */
@@ -24,23 +22,17 @@ const SECTION_LINKS = [
 
 export default async function BenchPage() {
   const { equipment, parts, software } = await getBench()
-  const pins = pinsForEquipment(equipment)
   const softwareGroups = groupSoftware(software)
 
   return (
-    <BenchHighlightProvider initial={initialHighlight(pins)}>
+    <>
       <section className="dots border-b-[1.5px] border-line">
-        <Wrap className="flex flex-wrap items-center gap-8 pt-10 pb-6">
-          <div className="flex min-w-0 flex-[1_1_420px] flex-col gap-3.5">
-            <Eyebrow>Room 02 · Our bench</Eyebrow>
-            <h1 className="hl m-0 text-[56px] md:text-[80px]">
-              Everything
-              <br />
-              on our bench.
-            </h1>
+        <Wrap className="py-14">
+          <div className="flex max-w-[640px] flex-col gap-3.5">
+            <Eyebrow>02 · Our bench</Eyebrow>
+            <h1 className="hl m-0 text-[64px] md:text-[96px]">Our bench.</h1>
             <p className="m-0 max-w-[480px] text-base leading-[1.6] text-body">
-              The equipment, parts and software behind every SOBJO build. Hover over a card below to find it on the
-              bench.
+              The equipment, parts and software behind every SOBJO build.
             </p>
             <nav aria-label="On this page" className="mono mt-1.5 flex flex-wrap gap-2 text-[11px] font-bold">
               {SECTION_LINKS.map((link) => (
@@ -54,7 +46,6 @@ export default async function BenchPage() {
               ))}
             </nav>
           </div>
-          <BenchScene pins={pins} />
         </Wrap>
       </section>
 
@@ -102,6 +93,6 @@ export default async function BenchPage() {
           </div>
         </Wrap>
       </section>
-    </BenchHighlightProvider>
+    </>
   )
 }

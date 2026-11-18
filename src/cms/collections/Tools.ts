@@ -44,10 +44,8 @@ export const Tools: CollectionConfig = {
     {
       name: 'benchSpot',
       type: 'select',
-      admin: {
-        condition: (_, s) => s?.kind === 'equipment',
-        description: 'Which piece of the bench drawing lights up when someone hovers this card.',
-      },
+      // The bench drawing this pointed into was removed. Kept (hidden) so stored data and the database stay as they are.
+      admin: { hidden: true },
       options: [
         { label: 'Power supply (left end)', value: 'psu' },
         { label: 'Soldering station (front left)', value: 'solder' },
@@ -59,7 +57,8 @@ export const Tools: CollectionConfig = {
     {
       name: 'location',
       type: 'text',
-      admin: { condition: (_, s) => s?.kind === 'equipment', description: 'e.g. "Left end"' },
+      // Where it sat in the old bench drawing; no longer shown. Kept (hidden) so stored data stays as it is.
+      admin: { hidden: true },
     },
     {
       name: 'partGroup',
