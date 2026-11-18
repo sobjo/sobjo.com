@@ -8,8 +8,8 @@
  *   idea     a napkin sketch with a pen, for projects that are still ideas
  */
 
-import { DESK_SLOTS, DESK_Z, STEEL, YELLOW, iso, n1, type Pt, type Vec3 } from './geometry'
-import { box, circle, circle3d, line, outline, polygon, raw } from './svg'
+import { DESK_SLOTS, DESK_Z, STEEL, UNIT_PX, YELLOW, iso, n1, type Pt, type Vec3 } from './geometry'
+import { box, circle, circle3d, finishLayer, line, outline, polygon, raw, startLayer } from './svg'
 
 /** The bits of a project the hero needs. */
 export interface DeskProject {
@@ -356,4 +356,31 @@ function drawLamp(x: number, y: number, z: number) {
       `<path d="M-6 -7L8 -7L15 9L-13 9Z" fill="${YELLOW[1]}"/><path d="M1 -7L8 -7L15 9L1 9Z" fill="${YELLOW[2]}"/>` +
       `<ellipse cx="1" cy="9" rx="14" ry="4" fill="#FFF3BF"/></g>`,
   )
+}
+
+// ------------------------------------------------------------------ project icons
+
+/** The same floor slab colors as the small project drawings (`IsoArt`). */
+const SLAB = ['#EEF2F5', '#B5BFCB', '#C9D2DC']
+
+/**
+ * The Cubli or the Cheetah, standing still on a floor slab, as SVG markup for the project
+ * thumbnails. The viewBox is framed like the other `IsoArt` drawings (120 × 96, slab centered
+ * a little below the middle), so they can be swapped in at the same size.
+ */
+export function drawProjectIcon(kind: 'cube' | 'cheetah') {
+  const x = 50
+  const y = 50
+  /** Half the slab's side: kept small so the robot fills the picture. */
+  const half = kind === 'cube' ? 1.0 : 1.45
+  startLayer()
+  box(x - half, y - half, -0.18, half * 2, half * 2, 0.18, SLAB[0], SLAB[1], SLAB[2])
+  if (kind === 'cube') drawCubli(x, y, 0, 0)
+  else drawCheetah(x + 0.15, y, 0, 0, 'x')
+  const markup = finishLayer()
+  // the slab spans 96 of the 120 units across, like the IsoArt slab
+  const s = (half * 4 * 0.866 * UNIT_PX) / 96
+  const c = iso(x, y, 0)
+  const viewBox = [c[0] - 60 * s, c[1] - 60 * s, 120 * s, 96 * s].map(n1).join(' ')
+  return { markup, viewBox }
 }

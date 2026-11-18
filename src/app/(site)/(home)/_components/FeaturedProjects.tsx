@@ -1,7 +1,6 @@
 import { site } from '@/content/site'
 import { FadeLink } from '@/shared/layout/PageTransition'
 import type { Project } from '@/shared/lib/types'
-import { BuilderPill } from '@/shared/ui/BuilderPill'
 import { Eyebrow } from '@/shared/ui/Eyebrow'
 import { CompleteBar, ProgressBar } from '@/shared/ui/ProgressBar'
 import { ProjectMedia } from '@/shared/ui/ProjectMedia'
@@ -37,9 +36,6 @@ function FeaturedProjectCard({ project }: { project: Project }) {
       <ProjectMedia project={project} fallback="label" className="h-[180px]" />
       <div className="flex flex-col gap-2.5 p-[18px]">
         <div className="mono flex flex-wrap items-center gap-2 text-[10px] text-muted">
-          {project.builders.map((builder) => (
-            <BuilderPill key={builder} builder={builder} />
-          ))}
           <StatusBadge
             status={project.status}
             label={project.status === 'in-progress' ? 'In progress' : undefined}

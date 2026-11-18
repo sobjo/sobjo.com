@@ -1,10 +1,9 @@
 import { FadeLink } from '@/shared/layout/PageTransition'
 import type { Project } from '@/shared/lib/types'
-import { BuilderPill } from '@/shared/ui/BuilderPill'
 import { ProjectMedia } from '@/shared/ui/ProjectMedia'
 import { StatusBadge } from '@/shared/ui/StatusBadge'
 
-/** A project in the Projects list: picture, badges, summary, role and tools, and a link to the write-up. */
+/** A project in the Projects list: picture, status and year, summary, role and tools, and a link to the write-up. */
 export function ProjectCard({ project }: { project: Project }) {
   return (
     <article className="card flex flex-wrap gap-6 p-5">
@@ -12,9 +11,6 @@ export function ProjectCard({ project }: { project: Project }) {
       <div className="flex min-w-0 flex-[1_1_360px] flex-col gap-2.5">
         <div className="mono flex flex-wrap items-center gap-2 text-[10px] text-muted">
           <StatusBadge status={project.status} />
-          {project.builders.map((builder) => (
-            <BuilderPill key={builder} builder={builder} />
-          ))}
           {project.year && <span>{project.year}</span>}
         </div>
         <h2 className="hl m-0 text-[44px]">{project.title}</h2>

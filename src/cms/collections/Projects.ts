@@ -45,6 +45,8 @@ export const Projects: CollectionConfig = {
       name: 'builders',
       type: 'select',
       hasMany: true,
+      // We build every project together, so this is no longer shown. Kept (hidden) so stored data stays as it is.
+      admin: { hidden: true },
       options: [
         { label: 'Gunnar', value: 'gunnar' },
         { label: 'Ivanna', value: 'ivanna' },

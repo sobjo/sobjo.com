@@ -1,10 +1,18 @@
+import { drawProjectIcon } from '@/app/(site)/(home)/_lib/workshop/items'
 import type { Illustration } from '@/shared/lib/types'
 
 /*
  * Small isometric drawings from the mockups, each on a 120 × 96 tile with a
  * floor slab underneath. Projects pick one as their `illustration`; the 404 and
- * Say hi pages use `idea` and `letter`.
+ * Say hi pages use `idea` and `letter`. The Cubli (`cube`) and Cheetah (`cheetah`)
+ * are the same drawings as on the home page desk, built by `drawProjectIcon`.
  */
+
+/** The home page's Cubli and Cheetah drawings, built once each. */
+const PROJECT_ICONS = {
+  cube: drawProjectIcon('cube'),
+  cheetah: drawProjectIcon('cheetah'),
+}
 
 function Slab() {
   return (
@@ -12,38 +20,6 @@ function Slab() {
       <path d="M60 84L108 60L60 36L12 60Z" fill="#EEF2F5" />
       <path d="M12 60L60 84V89L12 65Z" fill="#B5BFCB" />
       <path d="M60 84L108 60V65L60 89Z" fill="#C9D2DC" />
-    </>
-  )
-}
-
-function Cheetah() {
-  return (
-    <>
-      <path d="M42 62V72M52 67V77M66 60V70M76 55V65" stroke="#3A414B" strokeWidth="4" strokeLinecap="round" />
-      <path d="M36 52L66 37L86 47L56 62Z" fill="#F8D664" />
-      <path d="M36 52L56 62V68L36 58Z" fill="#F2BE22" />
-      <path d="M56 62L86 47V53L56 68Z" fill="#D9A40F" />
-      <path d="M78 39L88 34L96 38L86 43Z" fill="#F8D664" />
-      <path d="M78 39L86 43V51L78 47Z" fill="#F2BE22" />
-      <path d="M86 43L96 38V46L86 51Z" fill="#D9A40F" />
-      <circle cx="50" cy="51" r="2.5" fill="#2A2F36" />
-      <circle cx="60" cy="47" r="2.5" fill="#2A2F36" />
-      <circle cx="68" cy="51" r="2" fill="#2A2F36" />
-      <path d="M36 52Q26 50 26 40" stroke="#D9A40F" strokeWidth="3" fill="none" strokeLinecap="round" />
-    </>
-  )
-}
-
-function Cube() {
-  return (
-    <>
-      <ellipse cx="60" cy="68" rx="24" ry="8" fill="#1C2128" opacity="0.12" />
-      <path d="M60 14L84 26L60 38L36 26Z" fill="#7FA2CC" />
-      <path d="M36 26L60 38V64L36 52Z" fill="#5E86B8" />
-      <path d="M60 38L84 26V52L60 64Z" fill="#4A6FA0" />
-      <ellipse cx="48" cy="45" rx="6" ry="8" fill="#F2BE22" />
-      <ellipse cx="72" cy="45" rx="6" ry="8" fill="#F2BE22" opacity="0.85" />
-      <path d="M60 24L66 27L60 30L54 27Z" fill="#F8D664" />
     </>
   )
 }
@@ -135,8 +111,6 @@ function Letter() {
 
 /** Every drawing, by name. */
 const ART = {
-  cheetah: Cheetah,
-  cube: Cube,
   idea: Idea,
   plushies: Plushies,
   breadboard: Breadboard,
@@ -160,6 +134,20 @@ export function IsoArt({
   className?: string
   style?: React.CSSProperties
 }) {
+  if (name === 'cube' || name === 'cheetah') {
+    const icon = PROJECT_ICONS[name]
+    return (
+      <svg
+        width={width}
+        height={height}
+        viewBox={icon.viewBox}
+        aria-hidden="true"
+        className={className}
+        style={style}
+        dangerouslySetInnerHTML={{ __html: icon.markup }}
+      />
+    )
+  }
   const Drawing = ART[name]
   return (
     <svg width={width} height={height} viewBox="0 0 120 96" aria-hidden="true" className={className} style={style}>

@@ -4,7 +4,6 @@ import { notFound } from 'next/navigation'
 
 import { FadeLink } from '@/shared/layout/PageTransition'
 import { getPostsForProject, getProject, getProjects } from '@/shared/lib/content'
-import { BuilderPill } from '@/shared/ui/BuilderPill'
 import { Eyebrow } from '@/shared/ui/Eyebrow'
 import { PostCard } from '@/shared/ui/PostCard'
 import { ProgressBar } from '@/shared/ui/ProgressBar'
@@ -49,9 +48,6 @@ export default async function ProjectPage({ params }: Props) {
             </Eyebrow>
             <div className="mono flex flex-wrap items-center gap-2 text-[10px] text-muted">
               <StatusBadge status={project.status} />
-              {project.builders.map((builder) => (
-                <BuilderPill key={builder} builder={builder} />
-              ))}
               {project.year && <span>{project.year}</span>}
             </div>
             <h1 className="hl m-0 text-[64px] md:text-[96px]">{project.title}</h1>
