@@ -28,7 +28,6 @@ export function HomeHero({ projects }: { projects: DeskProject[] }) {
           <span className="inline-flex items-center gap-2 rounded-md bg-ink px-3 py-2 text-butter">
             ▸ Grab a project off the desk
           </span>
-          <span className="text-muted">The claw follows your cursor</span>
         </div>
       </div>
     </Workshop>

@@ -352,9 +352,9 @@ export function drawBackLayer() {
   line(poster(0.3, 5.3), poster(1.0, 5.3), 1.5, '#2A2F36')
   line(poster(0.3, 5.1), poster(0.8, 5.1), 1.5, '#2A2F36')
 
-  // cat clock on the left wall, tail swinging like a pendulum
+  // cat clock on the left wall, between the pegboard and the corner, tail swinging like a pendulum
   onLeftWall(
-    iso(0, 11.4, 6.9),
+    iso(0, 2.0, 5.9),
     `<g transform="scale(1.15)">` +
       `<g id="clock-pendulum"><path d="M0 12Q6 22 1 30Q-2 34 3 36" stroke="#F2BE22" stroke-width="4" fill="none" stroke-linecap="round"/>${sway(0, 12, 14, 2)}</g>` +
       `<path d="M-14 -9L-13 -25L-2 -16Z" fill="#F2BE22"/><path d="M14 -9L13 -25L2 -16Z" fill="#F2BE22"/>` +
