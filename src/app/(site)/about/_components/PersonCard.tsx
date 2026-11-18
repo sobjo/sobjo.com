@@ -1,7 +1,7 @@
 import type { Person } from '@/content/about'
 import { BuilderPill } from '@/shared/ui/BuilderPill'
 
-import { PhotoSwap } from './PhotoSwap'
+import { PersonPhoto } from './PersonPhoto'
 
 /** One of the two "Meet us" cards: photo, name, background and links. The top border is the person's color. */
 export function PersonCard({ person }: { person: Person }) {
@@ -9,7 +9,7 @@ export function PersonCard({ person }: { person: Person }) {
 
   return (
     <article className={`card flex flex-wrap gap-6 border-t-[6px]! p-6 ${accentBorder}`}>
-      <PhotoSwap person={person} />
+      <PersonPhoto person={person} />
       <div className="flex min-w-0 flex-[1_1_220px] flex-col gap-3">
         <span className="mono self-start text-[11px]">
           <BuilderPill builder={person.id} />

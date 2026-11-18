@@ -16,18 +16,22 @@ export default function AboutPage() {
   return (
     <>
       <section className="dots border-b-[1.5px] border-line">
-        <Wrap className="flex flex-wrap items-center gap-12 pt-12 pb-14">
-          <div className="flex min-w-0 flex-[1_1_440px] flex-col gap-3.5">
+        <Wrap className="grid items-center gap-10 pt-10 pb-12 md:pt-12 md:pb-14 lg:grid-cols-[1.05fr_1fr] lg:gap-12">
+          <div className="flex min-w-0 flex-col gap-3.5">
             <Eyebrow>03 · About us</Eyebrow>
-            <h1 className="hl m-0 text-[56px] md:text-[80px]">
+            <h1 className="hl m-0 text-[clamp(42px,11.5vw,80px)] lg:text-[clamp(56px,5.4vw,80px)]">
               Two engineers.
               <br />
               One shared bench.
             </h1>
-            <h2 className="mono mt-2.5 mb-0 text-xs font-bold">Why we built SOBJO</h2>
+            <h2 className="mono mt-2.5 mb-0 text-xs font-bold">Why we built Sobjo</h2>
             <p className="m-0 max-w-[520px] text-base leading-[1.6] text-body">{about.why}</p>
             <h2 className="mono mt-1.5 mb-0 text-xs font-bold">Who we are</h2>
             <p className="m-0 max-w-[520px] text-base leading-[1.6] text-body">{about.who}</p>
+            <p className="mono m-0 inline-flex items-center gap-2 self-start rounded-md border-[1.5px] border-line bg-white px-3 py-2 text-[11px] font-bold">
+              <span className="text-muted">Successful escape room streak:</span>
+              <span className="rounded-sm bg-ink px-1.5 py-0.5 text-butter">{about.escapeRoomStreak}</span>
+            </p>
           </div>
           <PinnedPhotos />
         </Wrap>
@@ -36,8 +40,7 @@ export default function AboutPage() {
       <section className="border-b-[1.5px] border-line bg-white">
         <Wrap className="py-16">
           <Eyebrow className="mb-2.5">Meet us</Eyebrow>
-          <h2 className="hl mt-0 mb-2 text-[40px] md:text-[52px]">The two halves of SOBJO</h2>
-          <p className="mt-0 mb-7 text-[15px] text-body">Hover over a photo to meet our cartoon selves.</p>
+          <h2 className="hl mt-0 mb-7 text-[40px] md:text-[52px]">The two halves of SOBJO</h2>
           <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(380px,100%),1fr))]">
             {people.map((person) => (
               <PersonCard key={person.id} person={person} />

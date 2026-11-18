@@ -4,9 +4,11 @@
  */
 
 export const about = {
-  why: '[Why you built the site: a place to keep the whole process behind every build, not just the finished thing, and to share what you learn along the way.]',
-  who: '[2 to 3 sentences on your story: how you met, how you started building together, and what you love about working as a team.]',
-  /** Pinned in the About hero: the big one on the left, then top right, then bottom right. */
+  who: "We are a robotics-loving couple based in Orlando, Florida. We fell in love over our mutual obsession with all things hardware and robotics. When we aren't tinkering in our home lab, you can usually find us strategizing over a board game, playing video games, experimenting with new recipes in the kitchen, or trying to solve a new escape room.",
+  why: 'This is our digital home, somewhere we could look back at how far our projects have evolved and document our journey. But more than that, this is our way of sharing our passion for automation and robotics with the world. We built this to connect with fellow makers, to inspire others to find joy in building things, and to encourage you to recreate our projects, test them out, and share your feedback along the way.',
+  /** Escape rooms solved in a row. Shown under "Who we are"; bump it after each win. */
+  escapeRoomStreak: 3,
+  /** Pinned in the About hero: top right, then the big full-body one on the left, then bottom right. */
   photos: [
     {
       src: '/about/garden.jpg' as string | null,
@@ -19,15 +21,15 @@ export const about = {
       src: '/about/escape-room.jpg' as string | null,
       alt: 'Gunnar and Ivanna after an escape room, holding signs that read MVP and Still confused?',
       placeholder: '[Photo 2]',
-      caption: null as string | null,
-      position: '50% 38%',
+      caption: 'Our first escape room together' as string | null,
+      position: '50% 70%',
     },
     {
       src: '/about/bench.jpg' as string | null,
       alt: 'The workbench: an L-shaped desk covered in tools, wires and robot parts',
       placeholder: '[Photo 3 · at the bench]',
-      caption: null as string | null,
-      position: '50% 42%',
+      caption: 'Our temporary setup' as string | null,
+      position: '50% 40%',
     },
   ],
 }
@@ -44,9 +46,6 @@ export interface Person {
   /** Which part of the photo stays in frame when it is cropped to the card. */
   photoPosition: string
   photoAlt: string
-  cartoon: string | null
-  /** Used in "Photo of Gunnar; hover to see his cartoon". */
-  possessive: string
   linkedin: string
   github: string
 }
@@ -62,8 +61,6 @@ export const people: Person[] = [
     photo: '/about/gunnar-centered.jpg',
     photoPosition: '50% 50%',
     photoAlt: 'Gunnar sitting on the floor, holding up the Cubli',
-    cartoon: null,
-    possessive: 'his',
     linkedin: '#linkedin',
     github: '#github',
   },
@@ -77,8 +74,6 @@ export const people: Person[] = [
     photo: '/about/ivanna.jpg',
     photoPosition: '56% 35%',
     photoAlt: 'Ivanna in a green knit bucket hat and green cardigan, smiling',
-    cartoon: null,
-    possessive: 'her',
     linkedin: '#linkedin',
     github: '#github',
   },
