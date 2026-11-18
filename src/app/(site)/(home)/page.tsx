@@ -13,9 +13,14 @@ export default async function HomePage() {
   const projects = await getProjects()
   const featured = projects.filter((project) => project.featured).slice(0, MAX_FEATURED)
 
+  // Finished and in-progress builds take the best spots on the desk; ideas go after them.
+  const onDesk = [...projects]
+    .sort((a, b) => Number(a.status === 'napkin') - Number(b.status === 'napkin'))
+    .map(({ slug, title, illustration }) => ({ slug, title, illustration }))
+
   return (
     <>
-      <HomeHero />
+      <HomeHero projects={onDesk} />
       <FeaturedProjects projects={featured} />
     </>
   )

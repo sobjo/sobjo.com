@@ -1,8 +1,8 @@
 /*
  * Where everything in the workshop sits, and how workshop positions map to the screen.
  *
- * Positions are in workshop units: x runs along the back wall (left to right),
- * y runs from the back wall toward the viewer, and z is height above the floor.
+ * Positions are in workshop units: x runs along the back (right-hand) wall, y runs
+ * along the left wall toward the viewer, and z is height above the floor.
  * `iso(x, y, z)` turns that into SVG pixels on the isometric drawing.
  */
 
@@ -17,7 +17,7 @@ export type Vec3 = [number, number, number]
 const ORIGIN_X = 960
 const ORIGIN_Y = 300
 /** Pixels per workshop unit. */
-const UNIT_PX = 28
+export const UNIT_PX = 28
 /** How far one unit along x or y moves across (KX) and down (KY) the screen: cos 30° and sin 30°. */
 const KX = UNIT_PX * 0.866
 const KY = UNIT_PX * 0.5
@@ -27,12 +27,15 @@ export function iso(x: number, y: number, z: number): Pt {
   return [ORIGIN_X + (x - y) * KX, ORIGIN_Y + (x + y) * KY - z * UNIT_PX]
 }
 
-/** Screen point → the workshop position on the flat plane at height `z` (used to follow the pointer). */
+/** Screen point → the workshop position on the flat plane at height `z`. */
 export function unproject(sx: number, sy: number, z: number) {
   const a = (sx - ORIGIN_X) / KX
   const b = (sy - ORIGIN_Y + z * UNIT_PX) / KY
   return { x: (a + b) / 2, y: (b - a) / 2 }
 }
+
+/** The part of the drawing the <svg> shows: the room and nothing else. */
+export const VIEWBOX = '548 26 824 768'
 
 export function clamp(value: number, min: number, max: number) {
   return value < min ? min : value > max ? max : value
@@ -45,42 +48,76 @@ export function n1(value: number) {
 
 // ------------------------------------------------------------------ layout of the room
 
-/** The room: a square floor, ROOM_W wide (x) and ROOM_D deep (y). */
-export const ROOM_W = 17
-export const ROOM_D = 17
-
-/** The conveyor belt: runs from BELT_X0 to BELT_X1, starts at BELT_Y and is BELT_D deep, with its surface at BELT_Z. */
-export const BELT_Y = 6.0
-export const BELT_D = 2.8
-export const BELT_X0 = 2.4
-export const BELT_X1 = 11.6
-export const BELT_Z = 2.6
-
-/** The cardboard "sorted" box, just past the chute at the end of the belt. It is square: BOX_SIZE on each side. */
-export const BOX_X = BELT_X1 + 0.6
-export const BOX_Y = 5.8
-export const BOX_SIZE = 3.4
-export const BOX_H = 2.3
-
-// ------------------------------------------------------------------ the robot arm
+/** The room: a square floor, ROOM_W wide (x) and ROOM_D deep (y), with walls WALL_H tall. */
+export const ROOM_W = 16
+export const ROOM_D = 16
+export const WALL_H = 9
 
 /**
- * The arm's shoulder joint. The arm stands just behind the belt. Seen from this angle "behind"
- * also shifts it right, so it sits a little left of the belt's middle to look centered on it.
+ * The L-shaped desk in the back corner. One arm runs along the back wall (x from 0 to
+ * DESK_BACK_LEN), the other along the left wall (y from 0 to DESK_LEFT_LEN). Both are
+ * DESK_D deep, with the top at DESK_Z.
  */
-export const SHOULDER: Vec3 = [(BELT_X0 + BELT_X1) / 2 - 1.0, 4.4, 1.75]
-export const UPPER_ARM_LEN = 4.9
-export const FOREARM_LEN = 6.2
-/** How far from the shoulder (across the floor) the fingertips can go. */
-export const REACH = 10
-/** Fingertip height when the gripper is empty. */
-export const HOVER_Z = 4.4
-/** Distance from the fingertips up to the wrist. */
-export const GRIP_OFFSET = 1.4
-/** Distance from the fingertips up to the palm bar. */
-export const PALM_OFFSET = 0.9
+export const DESK_D = 2.2
+export const DESK_Z = 2.6
+export const DESK_TOP = 0.18
+export const DESK_BACK_LEN = 11.4
+export const DESK_LEFT_LEN = 10.6
+
+/**
+ * Spots on the desk top where projects sit, in the order they fill up. Each is the
+ * center of the item's footprint.
+ */
+export const DESK_SLOTS: [number, number][] = [
+  [3.5, 1.1],
+  [6.3, 1.1],
+  [1.1, 4.3],
+  [1.1, 7.0],
+  [8.7, 1.1],
+]
+
+/** The rug and the Microduck's oval track on it. */
+export const RUG = { x0: 4.0, y0: 7.0, x1: 15.6, y1: 14.8 }
+/** The track's center line: two half circles of TRACK_R around these centers, joined by straights. */
+export const TRACK_C0: [number, number] = [7.2, 10.9]
+export const TRACK_C1: [number, number] = [12.5, 10.9]
+export const TRACK_R = 2.45
+export const TRACK_W = 1.15
+
+/** Where the Microduck may walk when you steer it: the open floor in front of the desk. */
+export const DUCK_BOUNDS = { x0: 4.2, y0: 5.4, x1: 15.4, y1: 15.4 }
 
 // ------------------------------------------------------------------ shared colors (top, left, right faces of a box)
 
-export const GRAY = ['#A3ADB9', '#8C97A4', '#76818E']
+export const WOOD = ['#E2BC8E', '#C9996A', '#B5855A']
+export const WHITE = ['#FBFAF7', '#ECE9E3', '#DEDAD2']
+export const STEEL = ['#C9CFD6', '#A3ADB9', '#8C97A4']
 export const YELLOW = ['#F8D664', '#F2BE22', '#D9A40F']
+
+// ------------------------------------------------------------------ the track
+
+/** Length of one straight and of the whole loop of the track's center line. */
+const TRACK_STRAIGHT = TRACK_C1[0] - TRACK_C0[0]
+export const TRACK_LEN = 2 * TRACK_STRAIGHT + 2 * Math.PI * TRACK_R
+
+/**
+ * A point `dist` along the track (clockwise on screen, starting at the back-left end of
+ * the back straight), moved `off` units outward from the center line. Also returns the
+ * direction of travel (dx, dy).
+ */
+export function trackAt(dist: number, off = 0) {
+  let s = ((dist % TRACK_LEN) + TRACK_LEN) % TRACK_LEN
+  const r = TRACK_R + off
+  const arc = Math.PI * TRACK_R
+  if (s < TRACK_STRAIGHT) return { x: TRACK_C0[0] + s, y: TRACK_C0[1] - r, dx: 1, dy: 0 }
+  s -= TRACK_STRAIGHT
+  if (s < arc) {
+    const a = -Math.PI / 2 + s / TRACK_R
+    return { x: TRACK_C1[0] + Math.cos(a) * r, y: TRACK_C1[1] + Math.sin(a) * r, dx: -Math.sin(a), dy: Math.cos(a) }
+  }
+  s -= arc
+  if (s < TRACK_STRAIGHT) return { x: TRACK_C1[0] - s, y: TRACK_C1[1] + r, dx: -1, dy: 0 }
+  s -= TRACK_STRAIGHT
+  const a = Math.PI / 2 + s / TRACK_R
+  return { x: TRACK_C0[0] + Math.cos(a) * r, y: TRACK_C0[1] + Math.sin(a) * r, dx: -Math.sin(a), dy: Math.cos(a) }
+}

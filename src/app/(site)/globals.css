@@ -243,3 +243,21 @@
     @slot;
   }
 }
+
+/* Home hero: once the claw has carried a project off screen, the room blurs while the next page loads. */
+.workshop-stage .stage-blur,
+.workshop-stage .arm-layer {
+  transition:
+    filter 0.4s ease,
+    opacity 0.4s ease;
+}
+.workshop-stage[data-leaving='true'] .stage-blur {
+  filter: blur(10px);
+  opacity: 0.5;
+}
+.workshop-stage[data-leaving='true'] .arm-layer {
+  opacity: 0;
+}
+.workshop-stage .arm-layer .ws-arm {
+  filter: drop-shadow(0 18px 22px rgb(28 33 40 / 0.18));
+}

@@ -7,7 +7,7 @@
  * React elements 60 times a second.
  */
 
-import { iso, n1, type Pt } from './geometry'
+import { iso, n1, type Pt, type Vec3 } from './geometry'
 
 /** The markup of the layer being drawn right now. */
 let current: string[] = []
@@ -96,5 +96,23 @@ export function sway(cx: number, cy: number, deg: number, dur: number) {
 export function heart(p: Pt, s: number, col: string, o?: number) {
   raw(
     `<path d="M${n1(p[0])} ${n1(p[1] + 6 * s)}l${n1(-8 * s)} ${n1(-7 * s)}c${n1(-5 * s)} ${n1(-5 * s)} ${n1(2 * s)} ${n1(-11 * s)} ${n1(8 * s)} ${n1(-5 * s)}c${n1(6 * s)} ${n1(-6 * s)} ${n1(13 * s)} 0 ${n1(8 * s)} ${n1(5 * s)}z" fill="${col}"${opacityAttr(o)}/>`,
+  )
+}
+
+/** Screen points around a circle of radius `r` centered on `c`, lying in the plane spanned by unit vectors `u` and `v`. */
+export function circle3d(c: Vec3, u: Vec3, v: Vec3, r: number, steps = 24): Pt[] {
+  const pts: Pt[] = []
+  for (let i = 0; i < steps; i++) {
+    const a = (i / steps) * Math.PI * 2
+    const ca = Math.cos(a) * r
+    const sa = Math.sin(a) * r
+    pts.push(iso(c[0] + u[0] * ca + v[0] * sa, c[1] + u[1] * ca + v[1] * sa, c[2] + u[2] * ca + v[2] * sa))
+  }
+  return pts
+}
+/** An outlined (not filled) closed shape through the given screen points. */
+export function outline(pts: Pt[], w: number, c: string, o?: number | null) {
+  current.push(
+    `<path d="M${pts.map((p) => `${n1(p[0])} ${n1(p[1])}`).join('L')}Z" fill="none" stroke="${c}" stroke-width="${w}" stroke-linejoin="round"${opacityAttr(o)}/>`,
   )
 }

@@ -1,37 +1,41 @@
 /*
- * The parts of the workshop that never move. They are drawn once, into three
- * layers, so the moving arm and items can slot between them:
+ * The parts of the workshop that never move. They are drawn once, into two layers,
+ * so the projects on the desk and the Microduck can slot between them:
  *
- *   back layer   → upper arm → middle layer → items on the belt → front layer → forearm and labels
+ *   back layer (room, desk, rug, track) → desk items → front layer (stools, bookcases, plant, cats) → Microduck
  */
 
 import {
-  BELT_D,
-  BELT_X0,
-  BELT_X1,
-  BELT_Y,
-  BOX_H,
-  BOX_SIZE,
-  BOX_X,
-  BOX_Y,
-  GRAY,
+  DESK_BACK_LEN,
+  DESK_D,
+  DESK_LEFT_LEN,
+  DESK_TOP,
+  DESK_Z,
   ROOM_D,
   ROOM_W,
-  SHOULDER,
-  YELLOW,
+  RUG,
+  TRACK_LEN,
+  TRACK_W,
+  WALL_H,
+  WHITE,
+  WOOD,
   iso,
   n1,
+  trackAt,
   type Pt,
 } from './geometry'
-import { box, circle, finishLayer, line, onLeftWall, polygon, raw, rim, shadow, startLayer, sway, wallText } from './svg'
+import { box, circle, finishLayer, line, onLeftWall, polygon, raw, rim, shadow, startLayer, sway } from './svg'
 
-/** The pegboard and desk sit on the front half of the left wall, between these y positions. */
-const PEG_Y0 = 10.6
-const PEG_Y1 = 15.4
+/** The pegboard hangs over the left arm of the desk, between these y positions. */
+const PEG_Y0 = 4.1
+const PEG_Y1 = 8.9
+/** How far below its original height the pegboard (and the tools on it) hangs. */
+const PEG_DROP = 1.25
+const PEG_BOARD = '#F1E8D8'
 
 /** A spot on the pegboard. `x` runs 1.0 to 5.8 along the board from its front end; `z` is height. */
 function onBoard(x: number, z: number): Pt {
-  return iso(0, PEG_Y1 + 1.0 - x, z)
+  return iso(0, PEG_Y1 + 1.0 - x, z - PEG_DROP)
 }
 
 /**
@@ -45,8 +49,8 @@ function drawTools(asShadow: boolean) {
     return asShadow ? [p[0] + 2, p[1] + 2.5] : p
   }
   /** The tool's color, or flat gray for the shadow pass. */
-  const c = (color: string) => (asShadow ? '#C3CCD6' : color)
-  const board = '#E9EEF5'
+  const c = (color: string) => (asShadow ? '#D9CBB3' : color)
+  const board = PEG_BOARD
   const peg = (x: number, z: number) => {
     if (!asShadow) circle(onBoard(x, z), 1.8, '#76818E')
   }
@@ -92,141 +96,265 @@ function drawTools(asShadow: boolean) {
   line(W(5.58, 6.86), W(5.66, 6.86), 3, c('#A3ADB9'))
 }
 
-/** A sitting orange tabby, eyes closed, tail swaying. `p` is where she sits. */
-function drawOrangeCat(p: Pt) {
+/** Book colors, picked in turn so neighboring books differ. */
+const BOOKS = ['#7FA88C', '#E9C46A', '#D88C6A', '#9DB4CF', '#2A2F36', '#C9B79C', '#B79BC9', '#E07A5F', '#F2EDE4', '#5E8B6B', '#A3B8C8', '#E8D9B5']
+
+/** A slightly darker version of a #RRGGBB color, for the shaded side of a book. */
+function shade(hex: string, k: number) {
+  const v = parseInt(hex.slice(1), 16)
+  const c = (sh: number) => Math.round(((v >> sh) & 255) * k)
+  return `#${((c(16) << 16) | (c(8) << 8) | c(0)).toString(16).padStart(6, '0')}`
+}
+
+/**
+ * An open white bookcase against a wall, its shelves packed with books. `along` says which
+ * wall: 'x' for the back wall (it runs along x and opens toward +y), 'y' for the left wall
+ * (runs along y, opens toward +x). It is drawn back to front like a real cabinet: back
+ * panel, far side, then each shelf with its books, then the near side and the top.
+ */
+function drawBookcase(along: 'x' | 'y', start: number, len: number, seed: number) {
+  const DEPTH = 1.25
+  const H = 5.6
+  const SIDE = 0.12
+  const BOARD = 0.12
+  const PLINTH = 0.25
+  const TOP = 0.14
+  const SHELVES = 4
+  /** A box in bookcase space: `u` along the wall, `d` out from the wall, `z` up. */
+  const lbox = (u0: number, d0: number, z0: number, lu: number, ld: number, h: number, top: string, front: string, side: string) => {
+    if (along === 'y') box(d0, start + u0, z0, ld, lu, h, top, side, front)
+    else box(start + u0, d0, z0, lu, ld, h, top, front, side)
+  }
+  if (along === 'y') shadow(0, start, DEPTH, len, 0.12)
+  else shadow(start, 0, len, DEPTH, 0.12)
+
+  lbox(0, 0, 0, len, 0.06, H, '#FFFFFF', '#E6E0D6', '#E6E0D6')
+  lbox(0, 0, 0, SIDE, DEPTH, H, '#FFFFFF', '#FBFAF7', '#F1EDE6')
+  const comp = (H - PLINTH - TOP - BOARD * (SHELVES - 1)) / SHELVES
+  let k = seed * 5
+  for (let sIdx = 0; sIdx < SHELVES; sIdx++) {
+    const zb = sIdx === 0 ? 0 : PLINTH + sIdx * comp + (sIdx - 1) * BOARD
+    const bh = sIdx === 0 ? PLINTH : BOARD
+    lbox(SIDE, 0, zb, len - SIDE * 2, DEPTH, bh, '#F4F1EB', '#FFFFFF', '#F1EDE6')
+    const z0 = zb + bh
+    // books standing on this shelf, left to right, with the odd gap, a lying-down stack, or a little plant
+    let u = SIDE + 0.04
+    const end = len - SIDE - 0.04
+    const plantHere = (sIdx + seed) % 4 === 1
+    while (u < end - 0.12) {
+      k++
+      if (plantHere && u > len * 0.55) {
+        const pu = Math.min(u + 0.35, end - 0.35)
+        const [px, py] = along === 'y' ? [DEPTH * 0.55, start + pu] : [start + pu, DEPTH * 0.55]
+        drawPottedPlant(px, py, z0, 0.42, 'small')
+        break
+      }
+      if (k % 9 === 4) {
+        // a short stack of books lying flat
+        const sw = Math.min(0.7, end - u)
+        for (let j = 0; j < 3; j++) {
+          const c = BOOKS[(k + j * 3) % BOOKS.length]
+          lbox(u + j * 0.03, 0.2, z0 + j * 0.13, sw - j * 0.06, DEPTH - 0.32, 0.13, shade(c, 1.08), c, shade(c, 0.8))
+        }
+        u += sw + 0.08
+        continue
+      }
+      if (k % 11 === 7) {
+        u += 0.25 // a gap
+        continue
+      }
+      const w = 0.12 + ((k * 37) % 5) * 0.025
+      if (u + w > end) break
+      const h = comp * (0.62 + ((k * 53) % 6) * 0.06)
+      const c = BOOKS[k % BOOKS.length]
+      lbox(u, 0.15, z0, w, DEPTH - 0.24, h, shade(c, 1.1), c, shade(c, 0.78))
+      u += w + 0.01
+    }
+  }
+  lbox(len - SIDE, 0, 0, SIDE, DEPTH, H, '#FFFFFF', '#FBFAF7', '#ECE8E1')
+  lbox(0, 0, H - TOP, len, DEPTH, TOP, '#FFFFFF', '#FBFAF7', '#ECE8E1')
+}
+
+/**
+ * A white pot with broad, oval leaves fanning up out of it, centered on (x, y, z).
+ * 'tall' is the big floor plant, 'small' a little one for a shelf or the top of a bookcase.
+ */
+function drawPottedPlant(x: number, y: number, z: number, s: number, kind: 'tall' | 'small') {
+  const p = iso(x, y, z)
+  const r = 17 * s
+  const ph = (kind === 'tall' ? 30 : 24) * s
+  raw(`<ellipse cx="${n1(p[0] + 3 * s)}" cy="${n1(p[1] + 2)}" rx="${n1(r * 1.25)}" ry="${n1(r * 0.55)}" fill="#1C2128" opacity="0.12"/>`)
   raw(
-    `<g transform="translate(${n1(p[0])} ${n1(p[1])}) scale(1.4)">` +
-      `<ellipse cx="2" cy="0" rx="20" ry="5.5" fill="#1C2128" opacity="0.13"/>` +
-      `<g id="orange-cat-tail"><path d="M10 -3C24 -2 27 -14 19 -21" fill="none" stroke="#E8913A" stroke-width="5" stroke-linecap="round"/>` +
-      `<path d="M21.5 -16C21 -19 20 -20 19 -21" fill="none" stroke="#C46A1E" stroke-width="5" stroke-linecap="round"/>${sway(10, -3, 9, 2.8)}</g>` +
-      `<path d="M-12 -2C-14 -16 -9 -27 0 -27C9 -27 14 -16 12 -2Z" fill="#E8913A"/>` +
-      `<path d="M-6 -3C-7 -12 -4 -19 0 -19C4 -19 7 -12 6 -3Z" fill="#F7D3A6"/>` +
-      `<path d="M8 -20q4 2 5 6M10 -12q3 2 3 6M-8 -20q-4 2 -5 6M-10 -12q-3 2 -3 6" stroke="#C46A1E" stroke-width="2" fill="none" stroke-linecap="round"/>` +
-      `<ellipse cx="-4" cy="-1.5" rx="3.6" ry="2.4" fill="#F7D3A6"/><ellipse cx="4" cy="-1.5" rx="3.6" ry="2.4" fill="#F7D3A6"/>` +
-      `<path d="M-10.5 -37L-9.5 -50L-2 -44Z" fill="#E8913A"/><path d="M10.5 -37L9.5 -50L2 -44Z" fill="#E8913A"/>` +
-      `<path d="M-8.4 -40L-7.9 -47L-3.8 -43.8Z" fill="#F2A07B"/><path d="M8.4 -40L7.9 -47L3.8 -43.8Z" fill="#F2A07B"/>` +
-      `<circle cx="0" cy="-34" r="11" fill="#E8913A"/>` +
-      `<path d="M-3 -44v4M0 -45v5M3 -44v4" stroke="#C46A1E" stroke-width="1.6" stroke-linecap="round"/>` +
-      `<ellipse cx="0" cy="-30" rx="5.5" ry="3.6" fill="#F7D3A6"/>` +
-      `<path d="M-6.8 -35q2 -2.4 4 0M2.8 -35q2 -2.4 4 0" stroke="#2A2F36" stroke-width="1.5" fill="none" stroke-linecap="round"/>` +
-      `<circle cx="-7" cy="-31" r="1.8" fill="#F2A07B" opacity="0.75"/><circle cx="7" cy="-31" r="1.8" fill="#F2A07B" opacity="0.75"/>` +
-      `<path d="M-1.4 -32.2h2.8l-1.4 1.6z" fill="#D9665A"/>` +
-      `<path d="M-2 -29.6q1 1 2 0q1 1 2 0" stroke="#2A2F36" stroke-width="1" fill="none" stroke-linecap="round"/>` +
-      `<path d="M-6 -30.5l-8 -1.2M-6 -29.3l-8 1.6M6 -30.5l8 -1.2M6 -29.3l8 1.6" stroke="#C46A1E" stroke-width="0.8" stroke-linecap="round"/>` +
-      `</g>`,
+    `<path d="M${n1(p[0] - r)} ${n1(p[1] - ph)}L${n1(p[0] - r * 0.86)} ${n1(p[1])}A${n1(r * 0.86)} ${n1(r * 0.43)} 0 0 0 ${n1(p[0] + r * 0.86)} ${n1(p[1])}L${n1(p[0] + r)} ${n1(p[1] - ph)}Z" fill="#F4F1EA"/>` +
+      `<path d="M${n1(p[0] + r * 0.15)} ${n1(p[1] - ph)}L${n1(p[0] + r * 0.15)} ${n1(p[1] + r * 0.42)}A${n1(r * 0.86)} ${n1(r * 0.43)} 0 0 0 ${n1(p[0] + r * 0.86)} ${n1(p[1])}L${n1(p[0] + r)} ${n1(p[1] - ph)}Z" fill="#E4DFD5"/>` +
+      `<ellipse cx="${n1(p[0])}" cy="${n1(p[1] - ph)}" rx="${n1(r)}" ry="${n1(r * 0.5)}" fill="#ECE8E0"/>` +
+      `<ellipse cx="${n1(p[0])}" cy="${n1(p[1] - ph + 1)}" rx="${n1(r * 0.82)}" ry="${n1(r * 0.38)}" fill="#6B4E35"/>`,
+  )
+  const base: Pt = [p[0], p[1] - ph]
+  // [angle from straight up in degrees, length in px, color]
+  const leaves: [number, number, string][] =
+    kind === 'tall'
+      ? [
+          [-72, 52, '#8DB89A'],
+          [70, 50, '#7FA88C'],
+          [-48, 74, '#6E9E7E'],
+          [44, 72, '#8DB89A'],
+          [-22, 92, '#7FA88C'],
+          [20, 88, '#6E9E7E'],
+          [-2, 104, '#8DB89A'],
+          [-35, 58, '#7FA88C'],
+          [32, 56, '#7FA88C'],
+        ]
+      : [
+          [-55, 40, '#8DB89A'],
+          [50, 40, '#7FA88C'],
+          [-20, 52, '#6E9E7E'],
+          [18, 50, '#8DB89A'],
+          [0, 44, '#7FA88C'],
+        ]
+  for (const [deg, len, c] of leaves) {
+    const L = len * s
+    const a = (deg * Math.PI) / 180
+    const dx = Math.sin(a)
+    const dy = -Math.cos(a)
+    const stemEnd: Pt = [base[0] + dx * L * 0.42, base[1] + dy * L * 0.42]
+    const mid: Pt = [base[0] + dx * L * 0.7, base[1] + dy * L * 0.7]
+    const tipP: Pt = [base[0] + dx * L, base[1] + dy * L]
+    const rot = deg - 90
+    line(base, stemEnd, Math.max(1.5, 2.2 * s), '#5E8B6B')
+    raw(
+      `<ellipse cx="${n1(mid[0])}" cy="${n1(mid[1])}" rx="${n1(L * 0.31)}" ry="${n1(L * 0.13)}" transform="rotate(${n1(rot)} ${n1(mid[0])} ${n1(mid[1])})" fill="${c}"/>`,
+    )
+    line(stemEnd, tipP, 1, '#5E8B6B', 0.45)
+  }
+}
+
+/** A round wooden stool at (x, y). */
+function drawStool(x: number, y: number) {
+  const SEAT = 1.75
+  const ground = iso(x, y, 0)
+  raw(`<ellipse cx="${n1(ground[0])}" cy="${n1(ground[1] + 2)}" rx="26" ry="12" fill="#1C2128" opacity="0.1"/>`)
+  for (const [lx, ly] of [
+    [-0.32, -0.1],
+    [0.3, -0.25],
+    [0.05, 0.36],
+  ])
+    line(iso(x + lx * 0.7, y + ly * 0.7, SEAT - 0.1), iso(x + lx, y + ly, 0), 3.5, '#B5855A')
+  line(iso(x - 0.25, y + 0.15, 0.6), iso(x + 0.24, y + 0.1, 0.6), 2, '#B5855A')
+  const top = iso(x, y, SEAT)
+  const rx = 0.55 * 28 * 0.866 * 1.414
+  const ry = rx / 1.732
+  raw(
+    `<path d="M${n1(top[0] - rx)} ${n1(top[1])}v6a${n1(rx)} ${n1(ry)} 0 0 0 ${n1(rx * 2)} 0v-6z" fill="${WOOD[1]}"/>` +
+      `<ellipse cx="${n1(top[0])}" cy="${n1(top[1])}" rx="${n1(rx)}" ry="${n1(ry)}" fill="${WOOD[0]}"/>`,
   )
 }
 
-/** A brown tabby with a white tummy, chin and paws, lying in a loaf. `p` is where she lies. */
-function drawBrownCat(p: Pt) {
+/** Three drawers on the front face of a cabinet. `face(u, z)` is a point on that face. */
+function drawDrawers(face: (u: number, z: number) => Pt, w: number, h: number) {
+  for (let d = 1; d < 3; d++) line(face(0.08, (h * d) / 3), face(w - 0.08, (h * d) / 3), 1.5, '#D5CFC3')
+  for (let d = 0; d < 3; d++) line(face(w / 2 - 0.25, (h * (d + 0.62)) / 3), face(w / 2 + 0.25, (h * (d + 0.62)) / 3), 3, WOOD[2])
+}
+
+/** The rug, and the Microduck's oval track on it. */
+function drawRugAndTrack() {
+  const { x0, y0, x1, y1 } = RUG
+  polygon([iso(x0, y0, 0), iso(x1, y0, 0), iso(x1, y1, 0), iso(x0, y1, 0)], '#E8DCC7')
+  polygon([iso(x0 + 0.3, y0 + 0.3, 0), iso(x1 - 0.3, y0 + 0.3, 0), iso(x1 - 0.3, y1 - 0.3, 0), iso(x0 + 0.3, y1 - 0.3, 0)], '#F1E9DB')
+  const inset = [iso(x0 + 0.55, y0 + 0.55, 0), iso(x1 - 0.55, y0 + 0.55, 0), iso(x1 - 0.55, y1 - 0.55, 0), iso(x0 + 0.55, y1 - 0.55, 0)]
+  raw(`<path d="M${inset.map((p) => `${n1(p[0])} ${n1(p[1])}`).join('L')}Z" fill="none" stroke="#DCCBAE" stroke-width="2"/>`)
+
+  const ring = (off: number) => {
+    const pts: Pt[] = []
+    for (let i = 0; i < 96; i++) {
+      const p = trackAt((i / 96) * TRACK_LEN, off)
+      pts.push(iso(p.x, p.y, 0))
+    }
+    return pts
+  }
+  const d = (pts: Pt[]) => `M${pts.map((p) => `${n1(p[0])} ${n1(p[1])}`).join('L')}Z`
+  const half = TRACK_W / 2
+  // red and white curbs, then the asphalt, then the dashed center line
+  raw(`<path d="${d(ring(half + 0.14))}${d(ring(-half - 0.14).reverse())}" fill="#FFFFFF" fill-rule="evenodd"/>`)
+  raw(`<path d="${d(ring(half + 0.07))}" fill="none" stroke="#D2553F" stroke-width="5" stroke-dasharray="6 6"/>`)
+  raw(`<path d="${d(ring(-half - 0.07))}" fill="none" stroke="#D2553F" stroke-width="5" stroke-dasharray="6 6"/>`)
+  raw(`<path d="${d(ring(half))}${d(ring(-half).reverse())}" fill="#53565C" fill-rule="evenodd"/>`)
+  raw(`<path d="${d(ring(0))}" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-dasharray="7 7" opacity="0.85"/>`)
+  // checkered start line across the back straight
+  const sx = 9.6
+  const sy0 = 10.9 - 2.45 - half
+  for (let i = 0; i < 4; i++)
+    for (let j = 0; j < 2; j++) {
+      const yy = sy0 + (i * TRACK_W) / 4
+      const xx = sx + j * 0.22
+      polygon(
+        [iso(xx, yy, 0), iso(xx + 0.22, yy, 0), iso(xx + 0.22, yy + TRACK_W / 4, 0), iso(xx, yy + TRACK_W / 4, 0)],
+        (i + j) % 2 ? '#1C2128' : '#FFFFFF',
+      )
+    }
+}
+
+/** A little traffic cone at (x, y). */
+function drawCone(x: number, y: number) {
+  const b = iso(x, y, 0)
+  const t = iso(x, y, 0.75)
   raw(
-    `<g transform="translate(${n1(p[0])} ${n1(p[1])}) scale(1.4)">` +
-      `<ellipse cx="0" cy="0" rx="28" ry="6" fill="#1C2128" opacity="0.13"/>` +
-      `<g id="brown-cat-tail"><path d="M-20 -5C-31 -1 -24 6 -7 4" fill="none" stroke="#9B7656" stroke-width="5" stroke-linecap="round"/>` +
-      `<path d="M-13 5C-10 4.6 -8.5 4.3 -7 4" fill="none" stroke="#5E4330" stroke-width="5" stroke-linecap="round"/>${sway(-20, -5, 5, 3.6)}</g>` +
-      `<ellipse cx="-2" cy="-9" rx="22" ry="10" fill="#F7F4EF"/>` +
-      `<path d="M-24 -10C-22 -23 18 -23 20 -10C12 -7 6 -11 -2 -9C-10 -7 -16 -11 -24 -10Z" fill="#9B7656"/>` +
-      `<path d="M-13 -18q2 4 0 7M-5 -19.5q2 4 0 7M3 -19q2 4 0 6.5" stroke="#5E4330" stroke-width="1.8" fill="none" stroke-linecap="round"/>` +
-      `<ellipse cx="12" cy="-1.6" rx="4" ry="2.5" fill="#FFFFFF"/><ellipse cx="20" cy="-1.6" rx="4" ry="2.5" fill="#FFFFFF"/>` +
-      `<path d="M10 -21L11 -32L17 -26Z" fill="#9B7656"/><path d="M26 -21L25 -32L19 -26Z" fill="#9B7656"/>` +
-      `<path d="M11.8 -23.5L12.3 -29L15.6 -25.6Z" fill="#F2A07B"/><path d="M24.2 -23.5L23.7 -29L20.4 -25.6Z" fill="#F2A07B"/>` +
-      `<circle cx="18" cy="-17" r="10" fill="#9B7656"/>` +
-      `<path d="M14.5 -25.5v3M21.5 -25.5v3" stroke="#5E4330" stroke-width="1.5" stroke-linecap="round"/>` +
-      `<path d="M16.6 -15L18 -25.5L19.4 -15Z" fill="#F7F4EF"/>` +
-      `<path d="M10.2 -14C12 -6 24 -6 25.8 -14C23 -11 20.5 -15 18 -13C15.5 -15 13 -11 10.2 -14Z" fill="#F7F4EF"/>` +
-      `<circle cx="14.4" cy="-18" r="1.9" fill="#2A2F36"/><circle cx="21.6" cy="-18" r="1.9" fill="#2A2F36"/>` +
-      `<circle cx="15" cy="-18.6" r="0.6" fill="#FFFFFF"/><circle cx="22.2" cy="-18.6" r="0.6" fill="#FFFFFF"/>` +
-      `<circle cx="12.4" cy="-14" r="1.6" fill="#F2A07B" opacity="0.65"/><circle cx="23.6" cy="-14" r="1.6" fill="#F2A07B" opacity="0.65"/>` +
-      `<path d="M16.8 -14.6h2.4l-1.2 1.4z" fill="#D9665A"/>` +
-      `<path d="M16.6 -12.5q.7 .8 1.4 0q.7 .8 1.4 0" stroke="#2A2F36" stroke-width="0.9" fill="none" stroke-linecap="round"/>` +
-      `<path d="M11.5 -13.5l-7 -0.6M11.5 -12.4l-7 1.6M24.5 -13.5l7 -0.6M24.5 -12.4l7 1.6" stroke="#A3ADB9" stroke-width="0.8" stroke-linecap="round"/>` +
-      `</g>`,
+    `<path d="M${n1(b[0] - 9)} ${n1(b[1])}l9 4l9 -4l-9 -4z" fill="#E8DCC7" stroke="#D2553F" stroke-width="2"/>` +
+      `<path d="M${n1(b[0] - 6)} ${n1(b[1] - 1)}L${n1(t[0] - 1.2)} ${n1(t[1])}L${n1(t[0] + 1.2)} ${n1(t[1])}L${n1(b[0] + 6)} ${n1(b[1] - 1)}Z" fill="#EE7A3A"/>` +
+      `<path d="M${n1(b[0] - 4)} ${n1(b[1] - 8)}L${n1(b[0] + 4)} ${n1(b[1] - 8)}L${n1(b[0] + 3)} ${n1(b[1] - 11)}L${n1(b[0] - 3)} ${n1(b[1] - 11)}Z" fill="#FFFFFF"/>`,
   )
 }
 
-/** The room behind everything else: walls, floor, window, lamp, poster, clock, pegboard and the arm's base. */
+/** The room behind everything else: walls, floor, window, poster, clock, pegboard, rug, track and the desk. */
 export function drawBackLayer() {
   startLayer()
-  const H = 10 // wall height
-  const T = 0.6 // wall thickness
-  const D = 1.2 // floor slab depth
-  // Walls: the inner faces, one L-shaped cap so the corner has no seam, and cut ends that run down
-  // to the bottom of the floor slab so they line up with its sides.
-  polygon([iso(0, 0, 0), iso(ROOM_W, 0, 0), iso(ROOM_W, 0, H), iso(0, 0, H)], '#DCE3EA')
-  polygon([iso(0, 0, 0), iso(0, ROOM_D, 0), iso(0, ROOM_D, H), iso(0, 0, H)], '#D0D8E1')
-  polygon([iso(-T, -T, H), iso(ROOM_W, -T, H), iso(ROOM_W, 0, H), iso(0, 0, H), iso(0, ROOM_D, H), iso(-T, ROOM_D, H)], '#8C97A4')
-  polygon([iso(ROOM_W, -T, -D), iso(ROOM_W, 0, -D), iso(ROOM_W, 0, H), iso(ROOM_W, -T, H)], '#C9D2DC')
-  polygon([iso(-T, ROOM_D, -D), iso(0, ROOM_D, -D), iso(0, ROOM_D, H), iso(-T, ROOM_D, H)], '#B5BFCB')
-  // floor slab
-  box(0, 0, -D, ROOM_W, ROOM_D, D, '#EEF2F5', '#B5BFCB', '#C9D2DC')
-  for (let g = 2; g < ROOM_W; g += 2) line(iso(g, 0, 0), iso(g, ROOM_D, 0), 1, '#DCE3EA')
-  for (let g = 2; g < ROOM_D; g += 2) line(iso(0, g, 0), iso(ROOM_W, g, 0), 1, '#DCE3EA')
-  // baseboards
-  polygon([iso(0, 0, 0), iso(ROOM_W, 0, 0), iso(ROOM_W, 0, 0.5), iso(0, 0, 0.5)], '#C3CCD6')
-  polygon([iso(0, 0, 0), iso(0, ROOM_D, 0), iso(0, ROOM_D, 0.5), iso(0, 0, 0.5)], '#A3ADB9')
-
-  // window, a sill deep enough for the plant, and light on the floor
-  polygon([iso(8.3, 0, 4.6), iso(13.8, 0, 4.6), iso(13.8, 0, 8.4), iso(8.3, 0, 8.4)], '#FFFFFF')
-  polygon([iso(8.6, 0, 4.9), iso(13.5, 0, 4.9), iso(13.5, 0, 8.1), iso(8.6, 0, 8.1)], '#A9D4F5')
-  polygon([iso(8.9, 0, 5.6), iso(10.5, 0, 7.8), iso(10.9, 0, 7.8), iso(9.3, 0, 5.6)], '#FFFFFF', 0.5)
-  line(iso(11.05, 0, 4.9), iso(11.05, 0, 8.1), 3, '#FFFFFF')
-  line(iso(8.6, 0, 6.5), iso(13.5, 0, 6.5), 3, '#FFFFFF')
-  box(8.1, 0, 4.4, 5.9, 0.9, 0.2, '#FFFFFF', '#E6ECF2', '#DCE3EA')
-  polygon([iso(9.0, 0.6, 0.01), iso(14.4, 0.6, 0.01), iso(15.2, 4.2, 0.01), iso(9.8, 4.2, 0.01)], '#FFFFFF', 0.55)
-  // plant on the sill
-  box(12.0, 0.15, 4.6, 0.65, 0.6, 0.6, '#5E3B1C', '#D4705B', '#C2523C')
-  const lf = iso(12.32, 0.45, 5.2)
-  const leaves: [number, number, string][] = [
-    [-18, -26, '#2E7D6B'],
-    [-5, -40, '#4E9A85'],
-    [9, -34, '#2E7D6B'],
-    [18, -19, '#4E9A85'],
-    [-14, -14, '#4E9A85'],
-  ]
-  for (const k of leaves) {
-    raw(
-      `<path d="M${n1(lf[0])} ${n1(lf[1])}Q${n1(lf[0] + k[0] * 0.2)} ${n1(lf[1] + k[1] * 0.7)} ${n1(lf[0] + k[0])} ${n1(lf[1] + k[1])}Q${n1(lf[0] + k[0] * 0.9)} ${n1(lf[1] + k[1] * 0.4)} ${n1(lf[0])} ${n1(lf[1])}Z" fill="${k[2]}" stroke="${k[2]}" stroke-width="3" stroke-linejoin="round"/>`,
-    )
+  const T = 0.45 // wall thickness
+  const D = 0.9 // floor slab depth
+  // walls: the inner faces, an L-shaped white cap, and cut ends down to the bottom of the floor slab
+  polygon([iso(0, 0, 0), iso(ROOM_W, 0, 0), iso(ROOM_W, 0, WALL_H), iso(0, 0, WALL_H)], '#EAE6DF')
+  polygon([iso(0, 0, 0), iso(0, ROOM_D, 0), iso(0, ROOM_D, WALL_H), iso(0, 0, WALL_H)], '#F1EEE8')
+  polygon(
+    [iso(-T, -T, WALL_H), iso(ROOM_W, -T, WALL_H), iso(ROOM_W, 0, WALL_H), iso(0, 0, WALL_H), iso(0, ROOM_D, WALL_H), iso(-T, ROOM_D, WALL_H)],
+    '#FDFCFA',
+  )
+  polygon([iso(ROOM_W, -T, -D), iso(ROOM_W, 0, -D), iso(ROOM_W, 0, WALL_H), iso(ROOM_W, -T, WALL_H)], '#E2DDD4')
+  polygon([iso(-T, ROOM_D, -D), iso(0, ROOM_D, -D), iso(0, ROOM_D, WALL_H), iso(-T, ROOM_D, WALL_H)], '#D9D3C9')
+  // floor slab and its planks
+  box(0, 0, -D, ROOM_W, ROOM_D, D, '#F7F5F0', '#DED8CE', '#E6E1D8')
+  for (let g = 1.3; g < ROOM_D; g += 1.3) line(iso(0, g, 0), iso(ROOM_W, g, 0), 1, '#E6E1D8')
+  for (let g = 1.3, k = 0; g < ROOM_D; g += 1.3, k++) {
+    const jx = 2.5 + ((k * 4.7) % 11)
+    line(iso(jx, g - 1.3, 0), iso(jx, g, 0), 1, '#E6E1D8')
   }
-  wallText(iso(1.6, 0, 8.75), 'SOBJO WORKSHOP', 34, '#1C2128', 'hl')
+  // baseboards
+  polygon([iso(0, 0, 0), iso(ROOM_W, 0, 0), iso(ROOM_W, 0, 0.35), iso(0, 0, 0.35)], '#FBFAF7')
+  polygon([iso(0, 0, 0), iso(0, ROOM_D, 0), iso(0, ROOM_D, 0.35), iso(0, 0, 0.35)], '#FBFAF7')
 
-  // floor lamp standing against the back wall, right of the window
-  const LX = 15.5
-  const LY = 0.75
-  const lampFoot = iso(LX, LY, 0)
-  raw(`<ellipse cx="${n1(lampFoot[0])}" cy="${n1(lampFoot[1])}" rx="70" ry="34" fill="url(#sh-glow)"/>`)
-  raw(`<ellipse cx="${n1(lampFoot[0] + 2)}" cy="${n1(lampFoot[1] + 2)}" rx="15" ry="7" fill="#1C2128" opacity="0.18"/>`)
-  raw(`<ellipse cx="${n1(lampFoot[0])}" cy="${n1(lampFoot[1])}" rx="13" ry="6" fill="#2A2F36"/>`)
-  raw(`<ellipse cx="${n1(lampFoot[0])}" cy="${n1(lampFoot[1] - 2)}" rx="13" ry="6" fill="#3A414B"/>`)
-  line(iso(LX, LY, 0.1), iso(LX, LY, 6.0), 3, '#3A414B')
-  const shade = iso(LX, LY, 6.3)
-  raw(`<circle cx="${n1(shade[0])}" cy="${n1(shade[1] + 4)}" r="52" fill="url(#sh-glow)"/>`)
-  raw(
-    `<path d="M${n1(shade[0] - 11)} ${n1(shade[1] - 14)}L${n1(shade[0] + 11)} ${n1(shade[1] - 14)}L${n1(shade[0] + 21)} ${n1(shade[1] + 8)}L${n1(shade[0] - 21)} ${n1(shade[1] + 8)}Z" fill="#F2BE22"/>` +
-      `<path d="M${n1(shade[0])} ${n1(shade[1] - 14)}L${n1(shade[0] + 11)} ${n1(shade[1] - 14)}L${n1(shade[0] + 21)} ${n1(shade[1] + 8)}L${n1(shade[0])} ${n1(shade[1] + 8)}Z" fill="#D9A40F"/>` +
-      `<ellipse cx="${n1(shade[0])}" cy="${n1(shade[1] - 14)}" rx="11" ry="3.5" fill="#F8D664"/>` +
-      `<ellipse cx="${n1(shade[0])}" cy="${n1(shade[1] + 8)}" rx="21" ry="5.5" fill="#FFF3BF"/>`,
-  )
+  // window over the back arm of the desk, with a glint of light
+  const WX0 = 4.4
+  const WX1 = 9.7
+  const WZ0 = 4.1
+  const WZ1 = 7.9
+  polygon([iso(WX0, 0, WZ0), iso(WX1, 0, WZ0), iso(WX1, 0, WZ1), iso(WX0, 0, WZ1)], '#FFFFFF')
+  polygon([iso(WX0 + 0.25, 0, WZ0 + 0.25), iso(WX1 - 0.25, 0, WZ0 + 0.25), iso(WX1 - 0.25, 0, WZ1 - 0.25), iso(WX0 + 0.25, 0, WZ1 - 0.25)], '#D9E6EE')
+  polygon([iso(WX0 + 0.6, 0, WZ0 + 0.6), iso(WX0 + 2.0, 0, WZ1 - 0.3), iso(WX0 + 2.6, 0, WZ1 - 0.3), iso(WX0 + 1.2, 0, WZ0 + 0.6)], '#FFFFFF', 0.55)
+  polygon([iso(WX0 + 2.4, 0, WZ0 + 0.3), iso(WX0 + 3.2, 0, WZ0 + 1.6), iso(WX0 + 3.5, 0, WZ0 + 1.6), iso(WX0 + 2.7, 0, WZ0 + 0.3)], '#FFFFFF', 0.4)
+  line(iso((WX0 + WX1) / 2, 0, WZ0 + 0.25), iso((WX0 + WX1) / 2, 0, WZ1 - 0.25), 4, '#FFFFFF')
+  line(iso(WX0 + 0.25, 0, (WZ0 + WZ1) / 2), iso(WX1 - 0.25, 0, (WZ0 + WZ1) / 2), 4, '#FFFFFF')
+  box(WX0 - 0.2, 0, WZ0 - 0.2, WX1 - WX0 + 0.4, 0.45, 0.2, '#FFFFFF', '#EEEBE5', '#E2DDD4')
 
-  // poster on the back half of the left wall
+  // framed poster right of the window, above the lamp
+  const poster = (u: number, z: number) => iso(10.6 + u, 0, z)
+  polygon([poster(0, 4.7), poster(1.3, 4.7), poster(1.3, 7.1), poster(0, 7.1)], '#2A2F36')
+  polygon([poster(0.1, 4.8), poster(1.2, 4.8), poster(1.2, 7.0), poster(0.1, 7.0)], '#FBFAF7')
+  const pc = poster(0.65, 6.25)
+  raw(`<ellipse cx="${n1(pc[0])}" cy="${n1(pc[1])}" rx="11" ry="13" transform="rotate(-30 ${n1(pc[0])} ${n1(pc[1])})" fill="#E07A5F"/>`)
+  line(poster(0.3, 5.3), poster(1.0, 5.3), 1.5, '#2A2F36')
+  line(poster(0.3, 5.1), poster(0.8, 5.1), 1.5, '#2A2F36')
+
+  // cat clock on the left wall, tail swinging like a pendulum
   onLeftWall(
-    iso(0, 4.6, 8.4),
-    `<rect width="112" height="112" rx="2" fill="#FFFFFF"/>` +
-      `<rect x="6" y="6" width="100" height="100" fill="#C2523C"/>` +
-      `<circle cx="56" cy="44" r="27" fill="#F8D664"/>` +
-      `<path d="M56 30V21" stroke="#1C2128" stroke-width="2"/><circle cx="56" cy="20" r="3.2" fill="#3B6FB6"/>` +
-      `<rect x="41" y="29" width="30" height="23" rx="6" fill="#EEF2F5"/>` +
-      `<circle cx="50" cy="40" r="3" fill="#1C2128"/><circle cx="62" cy="40" r="3" fill="#1C2128"/>` +
-      `<path d="M52 46q4 3.5 8 0" stroke="#1C2128" stroke-width="1.8" fill="none" stroke-linecap="round"/>` +
-      `<rect x="45" y="54" width="22" height="15" rx="3" fill="#A3ADB9"/>` +
-      `<path d="M56 64.5l-3.2-2.8c-2-2 0.8-4.6 3.2-2.2c2.4-2.4 5.2 0.2 3.2 2.2z" fill="#C2523C"/>` +
-      `<text x="56" y="86" text-anchor="middle" class="hl" font-size="15" fill="#FFFFFF">KEEP</text>` +
-      `<text x="56" y="100" text-anchor="middle" class="hl" font-size="15" fill="#FFFFFF">BUILDING</text>`,
-  )
-
-  // cat clock above the IN machine, tail swinging like a pendulum
-  onLeftWall(
-    iso(0, 7.4, 7.7),
+    iso(0, 11.4, 6.9),
     `<g transform="scale(1.15)">` +
       `<g id="clock-pendulum"><path d="M0 12Q6 22 1 30Q-2 34 3 36" stroke="#F2BE22" stroke-width="4" fill="none" stroke-linecap="round"/>${sway(0, 12, 14, 2)}</g>` +
       `<path d="M-14 -9L-13 -25L-2 -16Z" fill="#F2BE22"/><path d="M14 -9L13 -25L2 -16Z" fill="#F2BE22"/>` +
@@ -241,127 +369,56 @@ export function drawBackLayer() {
       `<path d="M0 0L6.5 3" stroke="#C2523C" stroke-width="1.6" stroke-linecap="round"/>` +
       `<circle r="1.7" fill="#2A2F36"/></g>`,
   )
-
-  // pegboard over the desk on the front half of the left wall, with tools hanging on it
-  polygon([iso(0, PEG_Y0 - 0.15, 5.15), iso(0, PEG_Y1 + 0.15, 5.15), iso(0, PEG_Y1 + 0.15, 8.05), iso(0, PEG_Y0 - 0.15, 8.05)], '#C3CCD6')
-  polygon([iso(0, PEG_Y0, 5.3), iso(0, PEG_Y1, 5.3), iso(0, PEG_Y1, 7.9), iso(0, PEG_Y0, 7.9)], '#E9EEF5')
-  for (let px = 1.3; px < 5.6; px += 0.5) for (let pz = 5.55; pz < 7.8; pz += 0.5) circle(onBoard(px, pz), 1.2, '#D0D8E1')
+  // pegboard over the left arm of the desk, with tools hanging on it
+  polygon(
+    [iso(0, PEG_Y0 - 0.15, 5.15 - PEG_DROP), iso(0, PEG_Y1 + 0.15, 5.15 - PEG_DROP), iso(0, PEG_Y1 + 0.15, 8.05 - PEG_DROP), iso(0, PEG_Y0 - 0.15, 8.05 - PEG_DROP)],
+    '#DCCBAE',
+  )
+  polygon([iso(0, PEG_Y0, 5.3 - PEG_DROP), iso(0, PEG_Y1, 5.3 - PEG_DROP), iso(0, PEG_Y1, 7.9 - PEG_DROP), iso(0, PEG_Y0, 7.9 - PEG_DROP)], PEG_BOARD)
+  for (let px = 1.3; px < 5.6; px += 0.5) for (let pz = 5.55; pz < 7.8; pz += 0.5) circle(onBoard(px, pz), 1.2, '#E0D2BA')
   drawTools(true)
   drawTools(false)
 
-  // robot arm base, just behind the belt
-  const bx = SHOULDER[0] - 0.8
-  const by = SHOULDER[1] - 0.8
-  shadow(bx, by, 1.6, 1.6, 0.18)
-  box(bx, by, 0, 1.6, 1.6, 0.7, GRAY[0], GRAY[1], GRAY[2])
-  rim(bx, by, 0.7, 1.6, 1.6)
-  box(bx + 0.27, by + 0.27, 0.7, 1.07, 1.07, 0.7, YELLOW[0], YELLOW[1], YELLOW[2])
-  rim(bx + 0.27, by + 0.27, 1.4, 1.07, 1.07)
-  circle(iso(bx + 0.13, by + 1.5, 0.35), 2.2, '#5E6875')
-  circle(iso(bx + 1.5, by + 0.13, 0.35), 2.2, '#5E6875')
+  drawRugAndTrack()
+  drawCone(5.1, 8.1)
+  drawCone(14.6, 13.8)
+
+  // the L-shaped desk: back arm first, then the left arm in front of it
+  const LEG = DESK_Z - DESK_TOP
+  shadow(0, 0, DESK_BACK_LEN, DESK_D, 0.1)
+  box(9.3, 0.15, 0, 1.9, 1.9, LEG, WHITE[0], WHITE[1], WHITE[2])
+  drawDrawers((u, z) => iso(9.3 + u, 2.05, z), 1.9, LEG)
+  box(5.6, 1.85, 0, 0.18, 0.18, LEG, WOOD[0], WOOD[1], WOOD[2])
+  box(1.95, 1.85, 0, 0.18, 0.18, LEG, WOOD[0], WOOD[1], WOOD[2])
+  box(0, 0, LEG, DESK_BACK_LEN, DESK_D, DESK_TOP, WOOD[0], WOOD[1], WOOD[2])
+  rim(0, 0, DESK_Z, DESK_BACK_LEN, DESK_D)
+
+  shadow(0, DESK_D, DESK_D, DESK_LEFT_LEN - DESK_D, 0.1)
+  box(1.85, 5.6, 0, 0.18, 0.18, LEG, WOOD[0], WOOD[1], WOOD[2])
+  box(0.15, DESK_LEFT_LEN - 2.05, 0, 1.9, 1.9, LEG, WHITE[0], WHITE[2], WHITE[1])
+  drawDrawers((u, z) => iso(2.05, DESK_LEFT_LEN - 2.05 + u, z), 1.9, LEG)
+  box(0, DESK_D, LEG, DESK_D, DESK_LEFT_LEN - DESK_D, DESK_TOP, WOOD[0], WOOD[2], WOOD[1])
+  rim(0, DESK_D, DESK_Z, DESK_D, DESK_LEFT_LEN - DESK_D)
   return finishLayer()
 }
 
-/** Drawn in front of the upper arm: the IN machine, the belt, the inside of the box and the chute. */
-export function drawMiddleLayer() {
-  startLayer()
-  // IN machine
-  shadow(0, 5.6, 2.4, 3.6)
-  box(0, 5.6, 0, 2.4, 3.6, 5, '#8C97A4', '#A3ADB9', '#76818E')
-  rim(0, 5.6, 5, 2.4, 3.6)
-  polygon([iso(2.4, 6.2, 2.1), iso(2.4, 8.6, 2.1), iso(2.4, 8.6, 3.9), iso(2.4, 6.2, 3.9)], '#1F242B')
-  for (let fl = 0; fl < 5; fl++)
-    polygon(
-      [
-        iso(2.42, 6.2 + fl * 0.48, 3.9),
-        iso(2.42, 6.62 + fl * 0.48, 3.9),
-        iso(2.42, 6.62 + fl * 0.48, 3.1),
-        iso(2.42, 6.2 + fl * 0.48, 3.1),
-      ],
-      '#2A2F36',
-      0.9,
-    )
-  circle(iso(1.2, 9.2, 4.3), 4, '#5FD38D')
-  const inLabel = iso(0.35, 9.2, 3.2)
-  raw(
-    `<text transform="matrix(0.866 0.5 0 1 ${n1(inLabel[0])} ${n1(inLabel[1])})" class="mono" font-size="13" font-weight="700" fill="#1C2128">IN ▸</text>`,
-  )
-  // legs + belt body
-  for (const lx of [3.6, 6.3, 8.9, BELT_X1 - 0.7]) {
-    shadow(lx, BELT_Y + 0.2, 0.3, 2.4, 0.1)
-    box(lx, BELT_Y + 0.2, 0, 0.3, 0.3, 2, GRAY[0], GRAY[1], GRAY[2])
-    box(lx, BELT_Y + BELT_D - 0.5, 0, 0.3, 0.3, 2, GRAY[0], GRAY[1], GRAY[2])
-  }
-  box(BELT_X0, BELT_Y, 2, BELT_X1 - BELT_X0, BELT_D, 0.6, '#3A414B', '#5E6875', '#76818E')
-  // box: back flap, left flap, inside
-  shadow(BOX_X, BOX_Y, BOX_SIZE, BOX_SIZE, 0.2)
-  polygon([iso(BOX_X, BOX_Y, BOX_H), iso(BOX_X + BOX_SIZE, BOX_Y, BOX_H), iso(BOX_X + BOX_SIZE, BOX_Y - 0.8, BOX_H + 1.1), iso(BOX_X, BOX_Y - 0.8, BOX_H + 1.1)], '#B57E45')
-  polygon([iso(BOX_X, BOX_Y, BOX_H), iso(BOX_X, BOX_Y + BOX_SIZE, BOX_H), iso(BOX_X - 0.7, BOX_Y + BOX_SIZE, BOX_H - 0.7), iso(BOX_X - 0.7, BOX_Y, BOX_H - 0.7)], '#C9925A')
-  polygon([iso(BOX_X, BOX_Y, BOX_H), iso(BOX_X + BOX_SIZE, BOX_Y, BOX_H), iso(BOX_X + BOX_SIZE, BOX_Y + BOX_SIZE, BOX_H), iso(BOX_X, BOX_Y + BOX_SIZE, BOX_H)], '#5E3B1C')
-  polygon([iso(BOX_X, BOX_Y, BOX_H), iso(BOX_X + BOX_SIZE, BOX_Y, BOX_H), iso(BOX_X + BOX_SIZE, BOX_Y, 0.8), iso(BOX_X, BOX_Y, 0.8)], '#8A5A2B')
-  polygon([iso(BOX_X, BOX_Y, BOX_H), iso(BOX_X, BOX_Y + BOX_SIZE, BOX_H), iso(BOX_X, BOX_Y + BOX_SIZE, 0.8), iso(BOX_X, BOX_Y, 0.8)], '#7E5428')
-  // chute
-  const CH0 = BELT_X1
-  const CH1 = BELT_X1 + 1.4
-  polygon([iso(CH0, BELT_Y + 0.3, 2.6), iso(CH1, BELT_Y + 0.3, 2.0), iso(CH1, BELT_Y + BELT_D - 0.3, 2.0), iso(CH0, BELT_Y + BELT_D - 0.3, 2.6)], '#C3CCD6')
-  polygon(
-    [iso(CH0, BELT_Y + BELT_D - 0.3, 2.6), iso(CH1, BELT_Y + BELT_D - 0.3, 2.0), iso(CH1, BELT_Y + BELT_D - 0.3, 2.3), iso(CH0, BELT_Y + BELT_D - 0.3, 2.9)],
-    '#8C97A4',
-  )
-  for (let cr = 0; cr < 3; cr++)
-    line(iso(CH0 + 0.2 + cr * 0.4, BELT_Y + 0.4, 2.52 - cr * 0.17), iso(CH0 + 0.2 + cr * 0.4, BELT_Y + BELT_D - 0.4, 2.52 - cr * 0.17), 2, '#A3ADB9')
-  return finishLayer()
-}
-
-/** Drawn in front of the items: the front of the box, the desk with its lamp and laptop, and the two cats. */
+/** Drawn in front of the desk items: stools, the two bookcases and the plant on top of one. */
 export function drawFrontLayer() {
   startLayer()
-  polygon([iso(BOX_X, BOX_Y + BOX_SIZE, 0), iso(BOX_X + BOX_SIZE, BOX_Y + BOX_SIZE, 0), iso(BOX_X + BOX_SIZE, BOX_Y + BOX_SIZE, BOX_H), iso(BOX_X, BOX_Y + BOX_SIZE, BOX_H)], '#D49A5E')
-  polygon([iso(BOX_X + BOX_SIZE, BOX_Y, 0), iso(BOX_X + BOX_SIZE, BOX_Y + BOX_SIZE, 0), iso(BOX_X + BOX_SIZE, BOX_Y + BOX_SIZE, BOX_H), iso(BOX_X + BOX_SIZE, BOX_Y, BOX_H)], '#B9844A')
-  polygon([iso(BOX_X + 1.4, BOX_Y + BOX_SIZE, 1.1), iso(BOX_X + 2.0, BOX_Y + BOX_SIZE, 1.1), iso(BOX_X + 2.0, BOX_Y + BOX_SIZE, BOX_H), iso(BOX_X + 1.4, BOX_Y + BOX_SIZE, BOX_H)], '#E9CFA6')
-  polygon(
-    [iso(BOX_X, BOX_Y + BOX_SIZE, BOX_H), iso(BOX_X + BOX_SIZE, BOX_Y + BOX_SIZE, BOX_H), iso(BOX_X + BOX_SIZE, BOX_Y + BOX_SIZE + 0.9, BOX_H + 0.7), iso(BOX_X, BOX_Y + BOX_SIZE + 0.9, BOX_H + 0.7)],
-    '#E2BC8B',
-  )
-  polygon(
-    [iso(BOX_X + BOX_SIZE, BOX_Y, BOX_H), iso(BOX_X + BOX_SIZE, BOX_Y + BOX_SIZE, BOX_H), iso(BOX_X + BOX_SIZE + 0.9, BOX_Y + BOX_SIZE, BOX_H + 0.7), iso(BOX_X + BOX_SIZE + 0.9, BOX_Y, BOX_H + 0.7)],
-    '#D7AE7C',
-  )
-  line(iso(BOX_X + 0.3, BOX_Y + BOX_SIZE, 0.5), iso(BOX_X + 1.0, BOX_Y + BOX_SIZE, 0.5), 2, '#8A5A2B')
-  line(iso(BOX_X + 0.3, BOX_Y + BOX_SIZE, 0.75), iso(BOX_X + 0.8, BOX_Y + BOX_SIZE, 0.75), 2, '#8A5A2B')
-  const sorted = iso(BOX_X + 0.3, BOX_Y + BOX_SIZE, 1.55)
-  raw(
-    `<text transform="matrix(0.866 0.5 0 1 ${n1(sorted[0])} ${n1(sorted[1])})" class="mono" font-size="12" font-weight="700" fill="#5A3B1E">SORTED</text>`,
-  )
-  // desk against the left wall, under the pegboard, facing into the room
-  shadow(0.3, 10.8, 1.8, 4.0, 0.12)
-  for (const [lx, ly] of [
-    [0.5, 11.0],
-    [1.8, 11.0],
-    [0.5, 14.4],
-    [1.8, 14.4],
-  ])
-    box(lx, ly, 0, 0.25, 0.25, 2.8, GRAY[0], GRAY[1], GRAY[2])
-  box(0.3, 10.8, 2.8, 1.9, 4.1, 0.2, '#F7F9FB', '#C3CCD6', '#A3ADB9')
-  rim(0.3, 10.8, 3.0, 1.9, 4.1)
-  // desk lamp in the back corner of the desk
-  box(0.5, 11.0, 3.0, 0.5, 0.5, 0.1, '#5E6875', '#3A414B', '#2A2F36')
-  line(iso(0.75, 11.25, 3.1), iso(0.75, 11.25, 4.6), 3, '#3A414B')
-  line(iso(0.75, 11.25, 4.6), iso(1.0, 12.0, 4.9), 3, '#3A414B')
-  polygon([iso(0.9, 11.8, 4.6), iso(1.1, 12.4, 4.6), iso(1.1, 12.2, 5.1), iso(0.9, 11.7, 5.0)], '#C2523C')
-  // laptop, screen facing into the room
-  box(0.8, 11.6, 3.0, 1.1, 1.8, 0.08, '#5E6875', '#3A414B', '#2A2F36')
-  polygon([iso(0.8, 11.6, 3.08), iso(0.8, 13.4, 3.08), iso(0.5, 13.4, 4.3), iso(0.5, 11.6, 4.3)], '#3A414B')
-  polygon([iso(0.78, 11.75, 3.2), iso(0.78, 13.25, 3.2), iso(0.52, 13.25, 4.18), iso(0.52, 11.75, 4.18)], '#A9D4F5')
-  line(iso(0.62, 12.05, 3.8), iso(0.62, 12.85, 3.8), 2, '#3B6FB6')
-  line(iso(0.69, 12.05, 3.55), iso(0.69, 13.05, 3.55), 2, '#C2523C')
-  // coffee
-  box(1.0, 13.8, 3.0, 0.45, 0.45, 0.55, '#3A2414', '#F7F9FB', '#DCE3EA')
-  line(iso(1.2, 14.02, 3.7), iso(1.1, 13.95, 4.1), 1.5, '#A3ADB9', 0.7)
+  drawStool(4.6, 4.5)
+  drawStool(7.6, 3.9)
+  drawBookcase('x', 13.1, ROOM_W - 13.1 - 0.05, 2)
+  drawPottedPlant(14.6, 0.65, 5.6, 0.8, 'small')
+  drawBookcase('y', 11.0, ROOM_D - 11.0 - 0.05, 0)
+  return finishLayer()
+}
 
-  // the brown cat lies on the floor in front of the desk
-  drawBrownCat(iso(2.9, 13.4, 0))
-  // the orange cat sits on the floor in front of the belt
-  drawOrangeCat(iso(13.2, 12.4, 0))
+/** Where the big floor plant stands. The duck is drawn in front of it or behind it depending on which is nearer. */
+export const FLOOR_PLANT: [number, number] = [2.5, 14.7]
+
+/** The big floor plant by the left bookcase, in its own layer. */
+export function drawPlantLayer() {
+  startLayer()
+  drawPottedPlant(FLOOR_PLANT[0], FLOOR_PLANT[1], 0, 1.15, 'tall')
   return finishLayer()
 }
