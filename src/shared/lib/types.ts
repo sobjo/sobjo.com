@@ -7,8 +7,8 @@ import type { SerializedEditorState } from '@payloadcms/richtext-lexical/lexical
 
 export type Builder = 'gunnar' | 'ivanna'
 export type ProjectStatus = 'in-progress' | 'finished' | 'napkin'
-/** Which isometric drawing stands in for a project without a photo. */
-export type Illustration = 'cheetah' | 'cube' | 'idea'
+/** Which isometric drawing a project's cards show (its photo fades in over it on hover). */
+export type Illustration = 'cheetah' | 'cube' | 'miniq' | 'kvm' | 'idea'
 export type Tint = 'sand' | 'steel' | 'blush' | 'paper'
 /** Long-form text written in the CMS editor. */
 export type RichText = SerializedEditorState
@@ -27,10 +27,10 @@ export interface Project {
   year: string | null
   builders: Builder[]
   summary: string | null
-  role: string | null
   tools: string | null
   /** Build steps done out of total. Only set for projects in progress. */
   progress: { done: number; total: number } | null
+  /** A photo of the real build, shown when someone hovers the drawing. */
   photo: Image | null
   body: RichText | null
   illustration: Illustration
@@ -48,7 +48,6 @@ export interface Post {
   entryNumber: number | null
   author: Builder
   category: string | null
-  project: { slug: string; title: string } | null
   dateLabel: string | null
   readLabel: string | null
   content: RichText | null

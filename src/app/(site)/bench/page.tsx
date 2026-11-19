@@ -15,9 +15,9 @@ export const revalidate = 300
 
 /** The "jump to section" links under the page title. */
 const SECTION_LINKS = [
-  { href: '#equipment', label: '01 Lab equipment' },
-  { href: '#hardware', label: '02 Hardware' },
-  { href: '#software', label: '03 Software' },
+  { href: '#equipment', label: 'Lab equipment' },
+  { href: '#hardware', label: 'Hardware' },
+  { href: '#software', label: 'Software' },
 ]
 
 export default async function BenchPage() {
@@ -29,8 +29,8 @@ export default async function BenchPage() {
       <section className="dots border-b-[1.5px] border-line">
         <Wrap className="py-14">
           <div className="flex max-w-[640px] flex-col gap-3.5">
-            <Eyebrow>02 · Our bench</Eyebrow>
-            <h1 className="hl m-0 text-[64px] md:text-[96px]">Our bench.</h1>
+            <Eyebrow>Our bench</Eyebrow>
+            <h1 className="hl m-0 text-[64px] md:text-[96px]">Our bench</h1>
             <p className="m-0 max-w-[480px] text-base leading-[1.6] text-body">
               The equipment, parts and software behind every SOBJO build.
             </p>
@@ -51,11 +51,11 @@ export default async function BenchPage() {
 
       <section id="equipment" className="scroll-mt-4 border-b-[1.5px] border-line bg-white">
         <Wrap className="py-16">
-          <Eyebrow className="mb-2.5">01 · Lab equipment</Eyebrow>
+          <Eyebrow className="mb-2.5">Lab equipment</Eyebrow>
           <h2 className="hl mt-0 mb-7 text-[40px] md:text-[52px]">The big stuff on the bench</h2>
           <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))]">
-            {equipment.map((item, index) => (
-              <EquipmentCard key={item.id} item={item} number={index + 1} />
+            {equipment.map((item) => (
+              <EquipmentCard key={item.id} item={item} />
             ))}
           </div>
         </Wrap>
@@ -68,7 +68,7 @@ export default async function BenchPage() {
             parts={parts}
             heading={
               <div>
-                <Eyebrow className="mb-2.5">02 · Hardware</Eyebrow>
+                <Eyebrow className="mb-2.5">Hardware</Eyebrow>
                 <h2 className="hl m-0 text-[40px] md:text-[52px]">The parts in our builds</h2>
                 <p className="mt-2.5 mb-0 max-w-[520px] text-[15px] leading-[1.55] text-body">
                   Boards, sensors, motors and materials, each tagged with the projects that use them.
@@ -81,7 +81,7 @@ export default async function BenchPage() {
 
       <section id="software" className="scroll-mt-4 bg-white">
         <Wrap className="py-16">
-          <Eyebrow className="mb-2.5">03 · Software</Eyebrow>
+          <Eyebrow className="mb-2.5">Software</Eyebrow>
           <h2 className="hl mt-0 mb-2 text-[40px] md:text-[52px]">What runs on our computers</h2>
           <p className="mt-0 mb-7 max-w-[560px] text-[15px] leading-[1.55] text-body">
             From the languages our firmware is written in to the tools we design and plan with.

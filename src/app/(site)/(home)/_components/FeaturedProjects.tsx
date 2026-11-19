@@ -33,7 +33,7 @@ export function FeaturedProjects({ projects }: { projects: Project[] }) {
 function FeaturedProjectCard({ project }: { project: Project }) {
   return (
     <FadeLink href={`/projects/${project.slug}`} className="card flex flex-col overflow-hidden">
-      <ProjectMedia project={project} fallback="label" className="h-[180px]" />
+      <ProjectMedia project={project} className="h-[180px]" />
       <div className="flex flex-col gap-2.5 p-[18px]">
         <div className="mono flex flex-wrap items-center gap-2 text-[10px] text-muted">
           <StatusBadge

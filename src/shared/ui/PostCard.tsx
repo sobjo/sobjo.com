@@ -10,7 +10,7 @@ export function entryLabel(entryNumber: number | null) {
 
 /** A notebook entry preview that links to the full entry. Used on the Notebook page and on project pages. */
 export function PostCard({ post }: { post: Post }) {
-  const meta = [post.dateLabel, post.readLabel, post.project?.title].filter(Boolean).join(' · ')
+  const meta = [post.dateLabel, post.readLabel].filter(Boolean).join(' · ')
 
   return (
     <FadeLink href={`/notebook/${post.slug}`} className="card flex flex-col gap-2.5 p-5">

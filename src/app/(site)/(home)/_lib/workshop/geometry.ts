@@ -65,16 +65,14 @@ export const DESK_BACK_LEN = 11.4
 export const DESK_LEFT_LEN = 10.6
 
 /**
- * Spots on the desk top where projects sit, in the order they fill up. Each is the
- * center of the item's footprint.
+ * Where projects go on the desk. The first few fill the back arm (along x), the rest the
+ * left arm (along y). Each arm is a stretch of desk top, and the items on it are spread
+ * so the empty space between them (and at both ends) is the same everywhere.
  */
-export const DESK_SLOTS: [number, number][] = [
-  [3.5, 1.1],
-  [6.3, 1.1],
-  [1.1, 4.3],
-  [1.1, 7.0],
-  [8.7, 1.1],
-]
+export const DESK_ARMS = [
+  { along: 'x', fixed: 1.1, from: 1.8, to: 11.0, max: 4 },
+  { along: 'y', fixed: 1.1, from: 2.6, to: 10.4, max: 3 },
+] as const
 
 /** The rug and the Microduck's oval track on it. */
 export const RUG = { x0: 4.0, y0: 7.0, x1: 15.6, y1: 14.8 }

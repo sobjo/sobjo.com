@@ -50,7 +50,6 @@ export const Posts: CollectionConfig = {
       type: 'text',
       admin: { position: 'sidebar', description: 'e.g. Build log, Controls, 3D printing' },
     },
-    { name: 'project', type: 'relationship', relationTo: 'projects', admin: { position: 'sidebar' } },
     {
       name: 'publishedAt',
       type: 'date',

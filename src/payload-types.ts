@@ -149,7 +149,6 @@ export interface Project {
   /**
    * Who did what
    */
-  role?: string | null;
   /**
    * Parts and software
    */
@@ -183,7 +182,7 @@ export interface Project {
   /**
    * Isometric drawing used when there is no photo.
    */
-  illustration?: ('cheetah' | 'cube' | 'idea') | null;
+  illustration?: ('cheetah' | 'cube' | 'miniq' | 'kvm' | 'idea') | null;
   /**
    * Background behind the drawing or photo.
    */
@@ -283,7 +282,6 @@ export interface Post {
    * e.g. Build log, Controls, 3D printing
    */
   category?: string | null;
-  project?: (number | null) | Project;
   publishedAt?: string | null;
   readMinutes?: number | null;
   updatedAt: string;
@@ -464,7 +462,6 @@ export interface ProjectsSelect<T extends boolean = true> {
   year?: T;
   builders?: T;
   summary?: T;
-  role?: T;
   tools?: T;
   progress?:
     | T
@@ -495,7 +492,6 @@ export interface PostsSelect<T extends boolean = true> {
   entryNumber?: T;
   author?: T;
   category?: T;
-  project?: T;
   publishedAt?: T;
   readMinutes?: T;
   updatedAt?: T;

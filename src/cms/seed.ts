@@ -14,7 +14,7 @@ import { placeholderBench, placeholderPosts, placeholderProjects } from '../cont
 /** Tells the revalidate hooks to skip refreshing pages; there is no running site during a seed. */
 const context = { disableRevalidate: true }
 
-/** Maps a project's title to its CMS id, so posts and bench items can link to it. */
+/** Maps a project's title to its CMS id, so bench items can link to it. */
 type ProjectIds = Map<string, number>
 
 async function seedProjects(payload: Payload): Promise<ProjectIds> {
@@ -41,7 +41,6 @@ async function seedProjects(payload: Payload): Promise<ProjectIds> {
         year: project.year,
         builders: project.builders,
         summary: project.summary,
-        role: project.role,
         tools: project.tools,
         progress: project.progress ?? undefined,
         illustration: project.illustration,
@@ -58,7 +57,7 @@ async function seedProjects(payload: Payload): Promise<ProjectIds> {
   return projectIds
 }
 
-async function seedPosts(payload: Payload, projectIds: ProjectIds) {
+async function seedPosts(payload: Payload) {
   for (const post of placeholderPosts) {
     const existing = await payload.find({
       collection: 'posts',
@@ -78,7 +77,6 @@ async function seedPosts(payload: Payload, projectIds: ProjectIds) {
         entryNumber: post.entryNumber,
         author: post.author,
         category: post.category,
-        project: post.project ? projectIds.get(post.project.title) : undefined,
         publishedAt: new Date().toISOString(),
         _status: 'published',
       },
@@ -146,7 +144,7 @@ async function seedBench(payload: Payload, projectIds: ProjectIds) {
 async function seed() {
   const payload = await getPayload({ config })
   const projectIds = await seedProjects(payload)
-  await seedPosts(payload, projectIds)
+  await seedPosts(payload)
   await seedBench(payload, projectIds)
   payload.logger.info('Seed finished.')
 }

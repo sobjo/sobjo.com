@@ -3,9 +3,8 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 import { FadeLink } from '@/shared/layout/PageTransition'
-import { getPostsForProject, getProject, getProjects } from '@/shared/lib/content'
+import { getProject, getProjects } from '@/shared/lib/content'
 import { Eyebrow } from '@/shared/ui/Eyebrow'
-import { PostCard } from '@/shared/ui/PostCard'
 import { ProgressBar } from '@/shared/ui/ProgressBar'
 import { ProjectMedia } from '@/shared/ui/ProjectMedia'
 import { StatusBadge } from '@/shared/ui/StatusBadge'
@@ -33,7 +32,6 @@ export default async function ProjectPage({ params }: Props) {
   const { slug } = await params
   const project = await getProject(slug)
   if (!project) notFound()
-  const posts = await getPostsForProject(slug)
 
   return (
     <>
@@ -42,7 +40,7 @@ export default async function ProjectPage({ params }: Props) {
           <div className="flex min-w-0 flex-[1_1_420px] flex-col gap-3.5">
             <Eyebrow>
               <FadeLink href="/projects" className="no-underline">
-                04 · Projects
+                Projects
               </FadeLink>{' '}
               / {project.title}
             </Eyebrow>
@@ -64,7 +62,6 @@ export default async function ProjectPage({ params }: Props) {
           <div className="card flex-[1_1_380px] overflow-hidden p-3">
             <ProjectMedia
               project={project}
-              fallback="art"
               artSize={300}
               className="h-[300px] rounded-md"
               sizes="(max-width: 900px) 100vw, 560px"
@@ -85,23 +82,9 @@ export default async function ProjectPage({ params }: Props) {
               </p>
             )}
           </article>
-          <ProjectFacts role={project.role} tools={project.tools} />
+          <ProjectFacts tools={project.tools} />
         </Wrap>
       </section>
-
-      {posts.length > 0 && (
-        <section className="dots border-b-[1.5px] border-line">
-          <Wrap className="py-16">
-            <Eyebrow className="mb-2.5">From the notebook</Eyebrow>
-            <h2 className="hl mt-0 mb-6 text-[40px] md:text-[52px]">Build log</h2>
-            <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr))]">
-              {posts.map((post) => (
-                <PostCard key={post.slug} post={post} />
-              ))}
-            </div>
-          </Wrap>
-        </section>
-      )}
 
       <section className="bg-white">
         <Wrap className="flex flex-wrap items-center justify-between gap-5 py-12">

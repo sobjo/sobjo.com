@@ -2,16 +2,18 @@ import { drawProjectIcon } from '@/app/(site)/(home)/_lib/workshop/items'
 import type { Illustration } from '@/shared/lib/types'
 
 /*
- * Small isometric drawings from the mockups, each on a 120 × 96 tile with a
- * floor slab underneath. Projects pick one as their `illustration`; the 404 and
- * Say hi pages use `idea` and `letter`. The Cubli (`cube`) and Cheetah (`cheetah`)
+ * Small isometric drawings from the mockups, each on a 120 × 96 tile, with an
+ * optional floor slab underneath (project pictures leave it off). Projects pick one as their `illustration`; the 404 and
+ * Say hi pages use `idea` and `letter`. The Cubli (`cube`), MiniQ, Cheetah and KVM board
  * are the same drawings as on the home page desk, built by `drawProjectIcon`.
  */
 
 /** The home page's Cubli and Cheetah drawings, built once each. */
 const PROJECT_ICONS = {
   cube: drawProjectIcon('cube'),
+  miniq: drawProjectIcon('miniq'),
   cheetah: drawProjectIcon('cheetah'),
+  kvm: drawProjectIcon('kvm'),
 }
 
 function Slab() {
@@ -120,21 +122,27 @@ const ART = {
 
 type ArtName = Illustration | keyof typeof ART
 
-/** Draws the named isometric picture on its floor slab. */
+function hasProjectIcon(name: ArtName): name is keyof typeof PROJECT_ICONS {
+  return name in PROJECT_ICONS
+}
+
+/** Draws the named isometric picture, on its floor slab unless `floor` is false. */
 export function IsoArt({
   name,
+  floor = true,
   width = 120,
   height = 96,
   className,
   style,
 }: {
   name: ArtName
+  floor?: boolean
   width?: number
   height?: number
   className?: string
   style?: React.CSSProperties
 }) {
-  if (name === 'cube' || name === 'cheetah') {
+  if (hasProjectIcon(name)) {
     const icon = PROJECT_ICONS[name]
     return (
       <svg
@@ -151,7 +159,7 @@ export function IsoArt({
   const Drawing = ART[name]
   return (
     <svg width={width} height={height} viewBox="0 0 120 96" aria-hidden="true" className={className} style={style}>
-      <Slab />
+      {floor && <Slab />}
       <Drawing />
     </svg>
   )

@@ -2,12 +2,12 @@
 
 @theme {
   --color-ink: #1c2128;
-  --color-paper: #f4f6f8;
+  --color-paper: #e8eaec;
   --color-white: #ffffff;
-  --color-mist: #eef2f5;
-  --color-line: #dce3ea;
-  --color-chip: #c3ccd6;
-  --color-rule: #a3adb9;
+  --color-mist: #dee1e4;
+  --color-line: #ced2d7;
+  --color-chip: #ced2d7;
+  --color-rule: #a3a9b1;
   --color-steel: #8c97a4;
   --color-muted: #5b6573;
   --color-body: #3a414b;

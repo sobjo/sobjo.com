@@ -51,7 +51,6 @@ function toProject(doc: ProjectDoc): Project {
     year: doc.year ?? null,
     builders: doc.builders ?? [],
     summary: doc.summary ?? null,
-    role: doc.role ?? null,
     tools: doc.tools ?? null,
     progress: toProgress(doc),
     photo: toImage(doc.photo),
@@ -98,14 +97,7 @@ export const getPost = cache(async (slug: string): Promise<Post | null> => {
   return docs[0] ? toPost(docs[0]) : null
 })
 
-/** The notebook entries linked to one project, newest first. */
-export async function getPostsForProject(projectSlug: string): Promise<Post[]> {
-  const posts = await getPosts()
-  return posts.filter((post) => post.project?.slug === projectSlug)
-}
-
 function toPost(doc: PostDoc): Post {
-  const project = doc.project && typeof doc.project === 'object' ? doc.project : null
   return {
     slug: doc.slug,
     title: doc.title,
@@ -113,7 +105,6 @@ function toPost(doc: PostDoc): Post {
     entryNumber: doc.entryNumber ?? null,
     author: doc.author,
     category: doc.category ?? null,
-    project: project ? { slug: project.slug, title: project.title } : null,
     dateLabel: doc.publishedAt ? dateFormat.format(new Date(doc.publishedAt)) : null,
     readLabel: doc.readMinutes ? `${doc.readMinutes} min` : null,
     content: (doc.content as RichText | null | undefined) ?? null,

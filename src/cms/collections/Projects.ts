@@ -52,14 +52,8 @@ export const Projects: CollectionConfig = {
         { label: 'Ivanna', value: 'ivanna' },
       ],
     },
-    { name: 'summary', type: 'textarea', admin: { description: 'One or two sentences for the project card.' } },
-    {
-      type: 'row',
-      fields: [
-        { name: 'role', type: 'text', admin: { description: 'Who did what' } },
-        { name: 'tools', type: 'text', admin: { description: 'Parts and software' } },
-      ],
-    },
+    { name: 'summary', type: 'textarea', admin: { description: 'One or two sentences for the project card. Keep it short.' } },
+    { name: 'tools', type: 'text', admin: { description: 'Parts and software' } },
     {
       name: 'progress',
       type: 'group',
@@ -77,7 +71,12 @@ export const Projects: CollectionConfig = {
         },
       ],
     },
-    { name: 'photo', type: 'upload', relationTo: 'media' },
+    {
+      name: 'photo',
+      type: 'upload',
+      relationTo: 'media',
+      admin: { description: 'A photo of the real build. It fades in over the drawing when someone hovers the picture.' },
+    },
     {
       name: 'body',
       type: 'richText',
@@ -87,10 +86,12 @@ export const Projects: CollectionConfig = {
       name: 'illustration',
       type: 'select',
       defaultValue: 'idea',
-      admin: { position: 'sidebar', description: 'Isometric drawing used when there is no photo.' },
+      admin: { position: 'sidebar', description: 'Isometric drawing shown on the project cards. The photo appears over it on hover.' },
       options: [
         { label: 'Cheetah', value: 'cheetah' },
-        { label: 'Cube', value: 'cube' },
+        { label: 'Cube (Cubli)', value: 'cube' },
+        { label: 'Mini cube (MiniQ)', value: 'miniq' },
+        { label: 'KVM board', value: 'kvm' },
         { label: 'Napkin idea', value: 'idea' },
       ],
     },

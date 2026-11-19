@@ -1,28 +1,30 @@
 /*
  * What sits on the desk: one item per project, drawn to look like the real build,
- * plus a few things that are just there (a lamp, the laptop, a mug).
+ * and nothing else: every item on the desk links to its project.
  *
  * Projects come from the CMS. Each project's `illustration` picks its drawing:
  *   cube     the Cubli, a cube frame balancing on one corner with three reaction wheels
+ *   miniq    MiniQ, a miniature Cubli; it always sits right next to the big one
+ *   kvm      the KVM board, a flash-drive-sized Linux board with a USB plug on one end
  *   cheetah  the Cheetah, a quadruped robot dog with knee-back legs and hip actuators
- *   idea     a napkin sketch with a pen, for projects that are still ideas
+ *   idea     a napkin sketch with a pen, for projects that are still ideas (a storage rack, then a house)
  */
 
-import { DESK_SLOTS, DESK_Z, STEEL, UNIT_PX, YELLOW, iso, n1, type Pt, type Vec3 } from './geometry'
+import { DESK_ARMS, DESK_Z, UNIT_PX, YELLOW, iso, n1, type Pt, type Vec3 } from './geometry'
 import { box, circle, circle3d, finishLayer, line, outline, polygon, raw, startLayer } from './svg'
 
 /** The bits of a project the hero needs. */
 export interface DeskProject {
   slug: string
   title: string
-  illustration: 'cheetah' | 'cube' | 'idea'
+  illustration: 'cheetah' | 'cube' | 'miniq' | 'kvm' | 'idea'
 }
 
-/** Something on the desk. Projects have an `href`; the lamp, laptop and mug don't. */
+/** A project on the desk, linking to its page. */
 export interface DeskItem {
   id: string
   name: string
-  href: string | null
+  href: string
   /** Center of its footprint on the desk. */
   x: number
   y: number
@@ -32,28 +34,24 @@ export interface DeskItem {
   draw: (t: number, lift: number) => void
 }
 
-/** Places the projects on the desk slots (as many as fit) and adds the desk decorations. */
+/** Places the projects on the desk slots, as many as fit. */
 export function buildDeskItems(projects: DeskProject[]): DeskItem[] {
   const items: DeskItem[] = []
   let ideas = 0
-  projects.slice(0, DESK_SLOTS.length).forEach((project, i) => {
-    const [x, y] = DESK_SLOTS[i]
-    // On the left arm of the desk things run along y instead of x.
-    const along = x < 2 ? 'y' : 'x'
-    const base = { id: project.slug, name: project.title, href: `/projects/${project.slug}`, x, y }
-    if (project.illustration === 'cube') items.push({ ...base, h: 2.0, draw: (t, lift) => drawCubli(x, y, DESK_Z + lift, t) })
-    else if (project.illustration === 'cheetah')
+  for (const { slug, title, illustration, x, y, along } of layOutDesk(keepMiniQBesideCubli(projects))) {
+    const base = { id: slug, name: title, href: `/projects/${slug}`, x, y }
+    if (illustration === 'cube') items.push({ ...base, h: 2.0, draw: (t, lift) => drawCubli(x, y, DESK_Z + lift, t) })
+    else if (illustration === 'miniq')
+      items.push({ ...base, h: 0.95, draw: (t, lift) => drawCubli(x, y, DESK_Z + lift, t + 1.3, MINIQ_EDGE) })
+    else if (illustration === 'kvm')
+      items.push({ ...base, h: 0.3, draw: (t, lift) => drawKvmBoard(x, y, DESK_Z + lift, t, along) })
+    else if (illustration === 'cheetah')
       items.push({ ...base, h: 1.25, draw: (t, lift) => drawCheetah(x, y, DESK_Z + lift, t, along) })
     else {
       const seed = ideas++
       items.push({ ...base, h: 0.35, draw: (_t, lift) => drawNapkin(x, y, DESK_Z + lift, seed, along) })
     }
-  })
-  items.push(
-    { id: 'mug', name: '', href: null, x: 1.2, y: 1.2, h: 0.5, draw: () => drawMug(1.2, 1.2, DESK_Z) },
-    { id: 'laptop', name: '', href: null, x: 1.0, y: 9.3, h: 1.2, draw: () => drawLaptop(1.0, 9.3, DESK_Z) },
-    { id: 'lamp', name: '', href: null, x: 10.5, y: 0.8, h: 1.9, draw: () => drawLamp(10.5, 0.8, DESK_Z) },
-  )
+  }
   // Paint back to front: things nearer the viewer (bigger x + y) go last.
   return items.sort((a, b) => a.x + a.y - (b.x + b.y))
 }
@@ -97,24 +95,61 @@ function rotation(k: Vec3, a: number): M3 {
 }
 /** Tips the cube up so the diagonal from one corner to the opposite corner stands vertical, then turns it a little. */
 const CUBLI_TIP = matmul(rotation([0, 0, 1], 0.32), rotation([Math.SQRT1_2, -Math.SQRT1_2, 0], Math.acos(1 / Math.sqrt(3))))
+/** How much desk each drawing takes up along the desk, in workshop units. */
+const FOOTPRINT: Record<DeskProject['illustration'], number> = { cheetah: 2.9, cube: 1.5, miniq: 0.7, kvm: 1.0, idea: 1.3 }
+
+/** Puts the projects on the desk arms in order, with equal gaps between them and at the ends. */
+function layOutDesk(projects: DeskProject[]) {
+  const placed: (DeskProject & { x: number; y: number; along: 'x' | 'y' })[] = []
+  let next = 0
+  for (const arm of DESK_ARMS) {
+    const onArm = projects.slice(next, next + arm.max)
+    next += onArm.length
+    const used = onArm.reduce((sum, p) => sum + FOOTPRINT[p.illustration], 0)
+    const gap = Math.max(0, (arm.to - arm.from - used) / (onArm.length + 1))
+    let pos = arm.from + gap
+    for (const p of onArm) {
+      const mid = pos + FOOTPRINT[p.illustration] / 2
+      pos += FOOTPRINT[p.illustration] + gap
+      placed.push(arm.along === 'x' ? { ...p, x: mid, y: arm.fixed, along: 'x' } : { ...p, x: arm.fixed, y: mid, along: 'y' })
+    }
+  }
+  return placed
+}
+
 const CUBLI_EDGE = 1.12
-const CUBLI_DIAG = CUBLI_EDGE * Math.sqrt(3)
+/** MiniQ is the same cube, a bit under half the size. */
+const MINIQ_EDGE = 0.5
+
+/** Moves MiniQ (if there is one) to right after the Cubli, so it gets the desk spot beside it. */
+function keepMiniQBesideCubli(projects: DeskProject[]): DeskProject[] {
+  const cubli = projects.findIndex((p) => p.illustration === 'cube')
+  const miniq = projects.findIndex((p) => p.illustration === 'miniq')
+  if (cubli < 0 || miniq < 0) return projects
+  const rest = projects.filter((_, i) => i !== miniq)
+  rest.splice(rest.indexOf(projects[cubli]) + 1, 0, projects[miniq])
+  return rest
+}
 
 /**
  * The Cubli: an aluminum cube frame balancing on one corner. Three reaction wheels sit
  * on the three faces around the top corner and keep spinning to hold it upright.
+ * `edge` sets its size, so the same drawing makes the small MiniQ.
  */
-function drawCubli(x: number, y: number, z: number, t: number) {
+function drawCubli(x: number, y: number, z: number, t: number, edge = CUBLI_EDGE) {
+  /** Line widths shrink with the cube, but not so far that the frame disappears. */
+  const k = Math.max(edge / CUBLI_EDGE, 0.55)
+  const diag = edge * Math.sqrt(3)
   // a tiny wobble, like the controller fighting to stay balanced
   const wob = rotation([1, 0, 0], Math.sin(t * 2.3) * 0.025)
   const R = matmul(matmul(wob, rotation([0, 1, 0], Math.sin(t * 1.7 + 1) * 0.02)), CUBLI_TIP)
-  const center: Vec3 = [x, y, z + CUBLI_DIAG / 2]
+  const center: Vec3 = [x, y, z + diag / 2]
   const world = (p: Vec3): Vec3 => {
     const r = mul(R, p)
-    return [center[0] + r[0] * CUBLI_EDGE, center[1] + r[1] * CUBLI_EDGE, center[2] + r[2] * CUBLI_EDGE]
+    return [center[0] + r[0] * edge, center[1] + r[1] * edge, center[2] + r[2] * edge]
   }
   const dir = (p: Vec3): Vec3 => mul(R, p)
-  deskShadow(x, y, z, 0.7, 0.14 + Math.sin(t * 2.3) * 0.01)
+  deskShadow(x, y, z, 0.7 * (edge / CUBLI_EDGE), 0.14 + Math.sin(t * 2.3) * 0.01)
 
   // faces of the cube, as (axis, sign); wheels sit on the three + faces
   const faces: { axis: 0 | 1 | 2; sign: 1 | -1 }[] = []
@@ -148,37 +183,37 @@ function drawCubli(x: number, y: number, z: number, t: number) {
       const cw = world([f.n[0] * (inset / 0.5), f.n[1] * (inset / 0.5), f.n[2] * (inset / 0.5)])
       const uw = dir(u)
       const vw = dir(v)
-      const rimPts = circle3d(cw, uw, vw, 0.33 * CUBLI_EDGE, 28)
+      const rimPts = circle3d(cw, uw, vw, 0.33 * edge, 28)
       polygon(rimPts, '#D8A35C', front ? 1 : 0.6)
-      outline(rimPts, 2, '#A9712E', front ? 1 : 0.6)
-      polygon(circle3d(cw, uw, vw, 0.24 * CUBLI_EDGE, 24), '#E9C38A', front ? 1 : 0.6)
+      outline(rimPts, 2 * k, '#A9712E', front ? 1 : 0.6)
+      polygon(circle3d(cw, uw, vw, 0.24 * edge, 24), '#E9C38A', front ? 1 : 0.6)
       const spin = t * (5 + f.axis * 1.7) * (f.axis === 1 ? -1 : 1)
       for (let s = 0; s < 3; s++) {
         const a = spin + (s * Math.PI * 2) / 3
-        const r = 0.24 * CUBLI_EDGE
+        const r = 0.24 * edge
         const tip = iso(
           cw[0] + (uw[0] * Math.cos(a) + vw[0] * Math.sin(a)) * r,
           cw[1] + (uw[1] * Math.cos(a) + vw[1] * Math.sin(a)) * r,
           cw[2] + (uw[2] * Math.cos(a) + vw[2] * Math.sin(a)) * r,
         )
-        line(iso(cw[0], cw[1], cw[2]), tip, 2.2, '#A9712E', front ? 1 : 0.6)
+        line(iso(cw[0], cw[1], cw[2]), tip, 2.2 * k, '#A9712E', front ? 1 : 0.6)
       }
-      circle(iso(cw[0], cw[1], cw[2]), 3.2, '#2A2F36', front ? 1 : 0.6)
+      circle(iso(cw[0], cw[1], cw[2]), 3.2 * k, '#2A2F36', front ? 1 : 0.6)
     }
     // the four aluminum edges of this face
     for (let e = 0; e < 4; e++) {
       const a = quad[e]
       const b = quad[(e + 1) % 4]
-      line(a, b, front ? 4.2 : 3.4, front ? '#7E8A97' : '#9AA5B1')
-      line(a, b, front ? 2.2 : 1.6, front ? '#D5DBE2' : '#C3CCD6')
+      line(a, b, (front ? 4.2 : 3.4) * k, front ? '#7E8A97' : '#9AA5B1')
+      line(a, b, (front ? 2.2 : 1.6) * k, front ? '#D5DBE2' : '#C3CCD6')
     }
   }
   // the corner it balances on, and a status LED on top
   const bottom = world([-0.5, -0.5, -0.5])
-  circle(iso(bottom[0], bottom[1], bottom[2]), 3, '#5E6875')
+  circle(iso(bottom[0], bottom[1], bottom[2]), 3 * k, '#5E6875')
   const top = world([0.5, 0.5, 0.5])
-  circle(iso(top[0], top[1], top[2]), 3.2, '#5E6875')
-  circle(iso(top[0], top[1], top[2]), 1.6, Math.sin(t * 4) > 0 ? '#5FD38D' : '#3FA86A')
+  circle(iso(top[0], top[1], top[2]), 3.2 * k, '#5E6875')
+  circle(iso(top[0], top[1], top[2]), 1.6 * k, Math.sin(t * 4) > 0 ? '#5FD38D' : '#3FA86A')
 }
 
 // ------------------------------------------------------------------ Cheetah
@@ -272,31 +307,34 @@ function drawNapkin(x: number, y: number, z: number, seed: number, along: 'x' | 
   polygon([P(-0.55, -0.55), P(0.55, -0.55), P(0.55, 0.55), P(-0.55, 0.55)], '#FFFFFF')
   line(P(0, -0.53, 0.03), P(0, 0.53, 0.03), 1, '#E6E1D8')
   const ink = '#3B6FB6'
+  const ring = (cu: number, cv: number, r: number, n = 12): Pt[] =>
+    Array.from({ length: n }, (_, i) => P(cu + Math.cos((i / n) * Math.PI * 2) * r, cv + Math.sin((i / n) * Math.PI * 2) * r, 0.03))
   if (seed % 2 === 0) {
-    // a gear with a question mark
-    const pts: Pt[] = []
-    for (let i = 0; i < 24; i++) {
-      const a = (i / 24) * Math.PI * 2
-      const r = i % 2 ? 0.3 : 0.24
-      pts.push(P(-0.05 + Math.cos(a) * r, Math.sin(a) * r, 0.03))
+    // a storage rack: a 3 × 3 grid of bins, a gantry rail along the top, and a carriage dropping into a bin
+    const u0 = -0.42
+    const u1 = 0.12
+    const v0 = -0.12
+    const v1 = 0.4
+    outline([P(u0, v0, 0.03), P(u1, v0, 0.03), P(u1, v1, 0.03), P(u0, v1, 0.03)], 1.3, ink)
+    for (let i = 1; i < 3; i++) {
+      const u = u0 + ((u1 - u0) * i) / 3
+      const v = v0 + ((v1 - v0) * i) / 3
+      line(P(u, v0, 0.03), P(u, v1, 0.03), 1, ink)
+      line(P(u0, v, 0.03), P(u1, v, 0.03), 1, ink)
     }
-    outline(pts, 1.3, ink)
-    outline(
-      Array.from({ length: 12 }, (_, i) => P(-0.05 + Math.cos((i / 12) * Math.PI * 2) * 0.09, Math.sin((i / 12) * Math.PI * 2) * 0.09, 0.03)),
-      1.2,
-      ink,
-    )
+    line(P(u0 - 0.04, v0 - 0.2, 0.03), P(u1 + 0.04, v0 - 0.2, 0.03), 1.3, ink)
+    outline([P(-0.2, v0 - 0.25, 0.03), P(-0.1, v0 - 0.25, 0.03), P(-0.1, v0 - 0.15, 0.03), P(-0.2, v0 - 0.15, 0.03)], 1.2, ink)
+    line(P(-0.15, v0 - 0.13, 0.03), P(-0.15, v0 + 0.08, 0.03), 1.2, ink)
+    line(P(-0.19, v0 + 0.04, 0.03), P(-0.15, v0 + 0.08, 0.03), 1.2, ink)
+    line(P(-0.11, v0 + 0.04, 0.03), P(-0.15, v0 + 0.08, 0.03), 1.2, ink)
   } else {
-    // a little wheeled robot with an arrow
-    outline([P(-0.3, -0.25, 0.03), P(0.2, -0.25, 0.03), P(0.2, 0.05, 0.03), P(-0.3, 0.05, 0.03)], 1.3, ink)
-    for (const cu of [-0.2, 0.1])
-      outline(
-        Array.from({ length: 10 }, (_, i) => P(cu + Math.cos((i / 10) * Math.PI * 2) * 0.09, 0.13 + Math.sin((i / 10) * Math.PI * 2) * 0.09, 0.03)),
-        1.2,
-        ink,
-      )
-    line(P(0.25, 0.32, 0.03), P(0.45, 0.32, 0.03), 1.2, ink)
-    line(P(0.4, 0.27, 0.03), P(0.45, 0.32, 0.03), 1.2, ink)
+    // a house with a chat bubble: the home that runs itself
+    outline([P(-0.36, 0.38, 0.03), P(-0.36, 0.02, 0.03), P(-0.14, -0.2, 0.03), P(0.08, 0.02, 0.03), P(0.08, 0.38, 0.03)], 1.3, ink)
+    outline([P(-0.2, 0.38, 0.03), P(-0.2, 0.2, 0.03), P(-0.08, 0.2, 0.03), P(-0.08, 0.38, 0.03)], 1.1, ink)
+    outline([P(-0.32, 0.1, 0.03), P(-0.24, 0.1, 0.03), P(-0.24, 0.18, 0.03), P(-0.32, 0.18, 0.03)], 1, ink)
+    outline(ring(0.24, 0.12, 0.13, 16), 1.2, ink)
+    line(P(0.15, 0.2, 0.03), P(0.09, 0.27, 0.03), 1.2, ink)
+    for (const du of [-0.05, 0, 0.05]) circle(P(0.24 + du, 0.12, 0.03), 1.1, ink)
   }
   // coffee ring and the pen
   outline(
@@ -309,78 +347,74 @@ function drawNapkin(x: number, y: number, z: number, seed: number, along: 'x' | 
   line(P(0.715, 0.36, 0.055), P(0.722, 0.46, 0.055), 4, '#3B6FB6')
 }
 
-// ------------------------------------------------------------------ decorations
+// ------------------------------------------------------------------ KVM board
 
-function drawMug(x: number, y: number, z: number) {
-  deskShadow(x, y, z, 0.35, 0.12)
-  box(x - 0.2, y - 0.2, z, 0.4, 0.4, 0.45, '#5B3A22', '#FBFAF7', '#ECE9E3')
-  line(iso(x + 0.2, y, z + 0.35), iso(x + 0.33, y, z + 0.25), 3, '#ECE9E3')
-  line(iso(x + 0.33, y, z + 0.25), iso(x + 0.2, y, z + 0.12), 3, '#ECE9E3')
-}
-
-/** The laptop, open, screen facing into the room. */
-function drawLaptop(x: number, y: number, z: number) {
-  deskShadow(x + 0.1, y, z, 0.9, 0.1)
-  box(x - 0.45, y - 0.8, z, 1.0, 1.6, 0.07, '#C9CFD6', '#A3ADB9', '#B4BCC6')
-  polygon([iso(x - 0.45, y - 0.8, z + 0.07), iso(x - 0.45, y + 0.8, z + 0.07), iso(x - 0.75, y + 0.8, z + 1.15), iso(x - 0.75, y - 0.8, z + 1.15)], '#8C97A4')
-  polygon([iso(x - 0.47, y - 0.68, z + 0.17), iso(x - 0.47, y + 0.68, z + 0.17), iso(x - 0.72, y + 0.68, z + 1.05), iso(x - 0.72, y - 0.68, z + 1.05)], '#2A2F36')
-  // code on the screen
-  const rows: [number, number, string][] = [
-    [0.95, 0.6, '#F2BE22'],
-    [0.82, 0.9, '#9AD8F5'],
-    [0.69, 0.5, '#7FA88C'],
-    [0.56, 0.75, '#9AD8F5'],
-    [0.43, 0.4, '#E07A5F'],
-  ]
-  for (const [hz, len, c] of rows) {
-    const xx = x - 0.47 - (hz - 0.17) * (0.25 / 0.88)
-    line(iso(xx, y - 0.55, z + hz), iso(xx, y - 0.55 + len, z + hz), 1.8, c)
+/**
+ * The KVM board: a flash-drive-sized Linux KVM in its case. A graphite stick with a yellow
+ * band and a status LED on top, an HDMI port on its side, and a steel USB-A plug on the
+ * front end. `along` is the direction the plug points.
+ */
+function drawKvmBoard(x: number, y: number, z: number, t: number, along: 'x' | 'y') {
+  /** A box in stick coordinates: u runs toward the plug, v across the stick. */
+  const part = (u: number, v: number, h: number, du: number, dv: number, dh: number, top: string, a: string, b: string) =>
+    along === 'x' ? box(x + u, y + v, z + h, du, dv, dh, top, a, b) : box(x + v, y - u - du, z + h, dv, du, dh, top, a, b)
+  const at = (u: number, v: number, h: number): Pt => (along === 'x' ? iso(x + u, y + v, z + h) : iso(x + v, y - u, z + h))
+  const onTop = (u0: number, v0: number, u1: number, v1: number) => [at(u0, v0, H + 0.002), at(u1, v0, H + 0.002), at(u1, v1, H + 0.002), at(u0, v1, H + 0.002)]
+  const onSide = (u0: number, h0: number, u1: number, h1: number) => [at(u0, W / 2 + 0.002, h0), at(u1, W / 2 + 0.002, h0), at(u1, W / 2 + 0.002, h1), at(u0, W / 2 + 0.002, h1)]
+  const L = 0.74
+  const W = 0.3
+  const H = 0.13
+  const back = -L / 2 - 0.1
+  deskShadow(x + 0.05, y, z, 0.42, 0.14)
+  // the case, with a lighter inset panel on top
+  part(back, -W / 2, 0, L, W, H, '#3E4650', '#262B32', '#30363E')
+  polygon(onTop(back + 0.04, -W / 2 + 0.04, back + L - 0.04, W / 2 - 0.04), '#4A535E')
+  // yellow band near the back, and the status LED in front of it
+  polygon(onTop(back + 0.1, -W / 2, back + 0.15, W / 2), YELLOW[1])
+  polygon([at(back + 0.1, W / 2 + 0.002, H), at(back + 0.15, W / 2 + 0.002, H), at(back + 0.15, W / 2 + 0.002, 0), at(back + 0.1, W / 2 + 0.002, 0)], YELLOW[2])
+  const on = Math.sin(t * 3.1) > 0.2
+  if (on) circle(at(back + 0.24, 0, H), 3.4, '#5FD38D', 0.35)
+  circle(at(back + 0.24, 0, H), 1.7, on ? '#7BF0A6' : '#2E7D5B')
+  // three vent slots
+  for (const v of [-0.06, 0, 0.06]) line(at(back + 0.36, v, H + 0.003), at(back + 0.6, v, H + 0.003), 1.4, '#2A2F36', 0.8)
+  // HDMI port on the side facing the room
+  polygon(onSide(back + 0.2, 0.03, back + 0.42, 0.1), '#15191E')
+  polygon(onSide(back + 0.22, 0.05, back + 0.4, 0.08), '#5E6875')
+  // the steel USB-A plug on the front end, with its two contact windows
+  part(back + L, -0.11, 0.025, 0.24, 0.22, 0.085, '#E8ECF0', '#A3ADB9', '#C3CCD6')
+  for (const v of [-0.07, 0.02]) {
+    const u0 = back + L + 0.06
+    polygon([at(u0, v, 0.111), at(u0 + 0.12, v, 0.111), at(u0 + 0.12, v + 0.05, 0.111), at(u0, v + 0.05, 0.111)], '#8C97A4')
   }
-  // keyboard and trackpad
-  polygon([iso(x - 0.35, y - 0.65, z + 0.075), iso(x + 0.15, y - 0.65, z + 0.075), iso(x + 0.15, y + 0.65, z + 0.075), iso(x - 0.35, y + 0.65, z + 0.075)], '#DDE2E7')
-  polygon([iso(x + 0.25, y - 0.25, z + 0.075), iso(x + 0.48, y - 0.25, z + 0.075), iso(x + 0.48, y + 0.25, z + 0.075), iso(x + 0.25, y + 0.25, z + 0.075)], '#C3CCD6')
-}
-
-/** The yellow desk lamp at the far end of the desk. */
-function drawLamp(x: number, y: number, z: number) {
-  const base = iso(x, y, z)
-  raw(`<ellipse cx="${n1(base[0])}" cy="${n1(base[1])}" rx="15" ry="7.5" fill="#2A2F36"/>`)
-  raw(`<ellipse cx="${n1(base[0])}" cy="${n1(base[1] - 2.5)}" rx="15" ry="7.5" fill="#3A414B"/>`)
-  const elbow = iso(x + 0.25, y + 0.15, z + 1.3)
-  const head = iso(x - 0.35, y + 0.35, z + 1.85)
-  line(iso(x, y, z + 0.1), elbow, 3.5, STEEL[2])
-  line(elbow, head, 3.5, STEEL[2])
-  circle(elbow, 3.5, '#3A414B')
-  raw(
-    `<g transform="translate(${n1(head[0])} ${n1(head[1])}) rotate(28)">` +
-      `<path d="M-6 -7L8 -7L15 9L-13 9Z" fill="${YELLOW[1]}"/><path d="M1 -7L8 -7L15 9L1 9Z" fill="${YELLOW[2]}"/>` +
-      `<ellipse cx="1" cy="9" rx="14" ry="4" fill="#FFF3BF"/></g>`,
-  )
 }
 
 // ------------------------------------------------------------------ project icons
 
-/** The same floor slab colors as the small project drawings (`IsoArt`). */
-const SLAB = ['#EEF2F5', '#B5BFCB', '#C9D2DC']
+/** The project drawings that have a picture version. */
+export type ProjectIconKind = 'cube' | 'miniq' | 'cheetah' | 'kvm'
+
+/** How much floor each picture frames around its drawing: smaller frames zoom in on small things. */
+const ICON_HALF: Record<ProjectIconKind, number> = { cube: 1.0, miniq: 0.55, cheetah: 1.45, kvm: 0.58 }
 
 /**
- * The Cubli or the Cheetah, standing still on a floor slab, as SVG markup for the project
- * thumbnails. The viewBox is framed like the other `IsoArt` drawings (120 × 96, slab centered
- * a little below the middle), so they can be swapped in at the same size.
+ * A project's desk drawing (Cubli, MiniQ, Cheetah or KVM board), standing still with no
+ * floor slab under it, as SVG markup for the project pictures. The viewBox is framed like the other `IsoArt` drawings
+ * (120 × 96), so they can be swapped in at the same size.
  */
-export function drawProjectIcon(kind: 'cube' | 'cheetah') {
+export function drawProjectIcon(kind: ProjectIconKind) {
   const x = 50
   const y = 50
-  /** Half the slab's side: kept small so the robot fills the picture. */
-  const half = kind === 'cube' ? 1.0 : 1.45
+  /** Half the width of the framed floor area: kept small so the robot fills the picture. */
+  const half = ICON_HALF[kind]
   startLayer()
-  box(x - half, y - half, -0.18, half * 2, half * 2, 0.18, SLAB[0], SLAB[1], SLAB[2])
   if (kind === 'cube') drawCubli(x, y, 0, 0)
+  else if (kind === 'miniq') drawCubli(x, y, 0, 1.3, MINIQ_EDGE)
+  else if (kind === 'kvm') drawKvmBoard(x - 0.05, y, 0, 0, 'x')
   else drawCheetah(x + 0.15, y, 0, 0, 'x')
-  const markup = finishLayer()
-  // the slab spans 96 of the 120 units across, like the IsoArt slab
-  const s = (half * 4 * 0.866 * UNIT_PX) / 96
   const c = iso(x, y, 0)
+  const markup = finishLayer()
+  // frame the same floor area a 120-unit IsoArt tile would show
+  const s = (half * 4 * 0.866 * UNIT_PX) / 96
   const viewBox = [c[0] - 60 * s, c[1] - 60 * s, 120 * s, 96 * s].map(n1).join(' ')
   return { markup, viewBox }
 }

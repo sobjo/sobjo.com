@@ -6,34 +6,49 @@ import type { Project } from '@/shared/lib/types'
 import { IsoArt } from './IsoArt'
 
 /**
- * The project's photo when it has one. Without a photo it falls back to either
- * the project's isometric drawing (`fallback="art"`) or a "[Name photo]"
- * placeholder (`fallback="label"`), on the project's background tint.
+ * The project's isometric drawing on its background tint. When the project has a
+ * photo of the real build, hovering (or focusing) the picture fades the photo in
+ * over the drawing, and a small "Photo" tag hints that it's there.
  */
 export function ProjectMedia({
   project,
-  fallback,
   className = '',
   artSize = 150,
   sizes = '(max-width: 768px) 100vw, 400px',
 }: {
   project: Project
-  fallback: 'art' | 'label'
   className?: string
   artSize?: number
   sizes?: string
 }) {
+  const { photo } = project
   return (
     <div
-      className={`relative flex items-center justify-center overflow-hidden ${className}`}
+      className={`group/media relative flex items-center justify-center overflow-hidden ${className}`}
       style={{ background: TINT_HEX[project.tint] }}
+      tabIndex={photo ? 0 : undefined}
     >
-      {project.photo ? (
-        <Image src={project.photo.url} alt={project.photo.alt} fill sizes={sizes} className="object-cover" />
-      ) : fallback === 'art' ? (
-        <IsoArt name={project.illustration} width={artSize} height={artSize * 0.8} />
-      ) : (
-        <span className="mono text-[11px] text-muted">[{project.title} photo]</span>
+      <IsoArt
+        name={project.illustration}
+        floor={false}
+        width={artSize}
+        height={artSize * 0.8}
+        className="transition-transform duration-300 group-hover/media:scale-95"
+      />
+      {photo && (
+        <>
+          <Image
+            src={photo.url}
+            alt={photo.alt}
+            fill
+            sizes={sizes}
+            className="object-cover opacity-0 transition-opacity duration-300 group-hover/media:opacity-100 group-focus/media:opacity-100"
+          />
+          <span className="mono pointer-events-none absolute right-2 bottom-2 rounded bg-white/85 px-1.5 py-0.5 text-[9px] text-muted transition-opacity duration-300 group-hover/media:opacity-0 group-focus/media:opacity-0">
+            <span className="pointer-coarse:hidden">Hover for photo</span>
+            <span className="hidden pointer-coarse:inline">Tap for photo</span>
+          </span>
+        </>
       )}
     </div>
   )

@@ -38,18 +38,13 @@ export default async function NotebookEntryPage({ params }: Props) {
         <Wrap width={1060} className="flex flex-col gap-3.5 py-14">
           <Eyebrow>
             <FadeLink href="/notebook" className="no-underline">
-              05 · Notebook
+              Notebook
             </FadeLink>{' '}
             / {entryLabel(post.entryNumber)}
           </Eyebrow>
           <div className="mono flex flex-wrap items-center gap-2 text-[10px] text-muted">
             <BuilderPill builder={post.author} />
             {post.category && <span>{post.category}</span>}
-            {post.project && (
-              <FadeLink href={`/projects/${post.project.slug}`} className="underline underline-offset-2">
-                {post.project.title}
-              </FadeLink>
-            )}
           </div>
           <h1 className="hl m-0 max-w-[900px] text-[56px] md:text-[80px]">{post.title}</h1>
           {post.summary && <p className="m-0 max-w-[620px] text-lg leading-[1.55] text-body">{post.summary}</p>}

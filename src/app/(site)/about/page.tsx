@@ -18,11 +18,11 @@ export default function AboutPage() {
       <section className="dots border-b-[1.5px] border-line">
         <Wrap className="grid items-center gap-10 pt-10 pb-12 md:pt-12 md:pb-14 lg:grid-cols-[1.05fr_1fr] lg:gap-12">
           <div className="flex min-w-0 flex-col gap-3.5">
-            <Eyebrow>03 · About us</Eyebrow>
+            <Eyebrow>About us</Eyebrow>
             <h1 className="hl m-0 text-[clamp(42px,11.5vw,80px)] lg:text-[clamp(56px,5.4vw,80px)]">
-              Two engineers.
+              Two engineers
               <br />
-              One shared bench.
+              One shared bench
             </h1>
             <h2 className="mono mt-2.5 mb-0 text-xs font-bold">Why we built Sobjo</h2>
             <p className="m-0 max-w-[520px] text-base leading-[1.6] text-body">{about.why}</p>

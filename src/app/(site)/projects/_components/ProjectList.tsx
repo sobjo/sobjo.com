@@ -17,7 +17,6 @@ const FILTERS: Filter[] = ['all', 'in-progress', 'finished', 'napkin']
 export function ProjectList({ projects, cards }: { projects: Project[]; cards: Record<string, React.ReactNode> }) {
   const [filter, setFilter] = useState<Filter>('all')
   const matches = (project: Project, f: Filter) => f === 'all' || project.status === f
-  const countFor = (f: Filter) => projects.filter((project) => matches(project, f)).length
   const shown = projects.filter((project) => matches(project, filter))
 
   return (
@@ -28,11 +27,6 @@ export function ProjectList({ projects, cards }: { projects: Project[]; cards: R
           return (
             <FilterButton key={f} size="large" pressed={pressed} onClick={() => setFilter(f)}>
               {f === 'all' ? 'All' : STATUS_FILTER_LABEL[f]}
-              <span
-                className={`ml-1.5 rounded-[3px] px-1.5 py-px text-[10px] text-ink ${pressed ? 'bg-butter' : 'bg-mist'}`}
-              >
-                {countFor(f)}
-              </span>
             </FilterButton>
           )
         })}

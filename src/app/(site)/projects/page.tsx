@@ -31,8 +31,8 @@ export default async function ProjectsPage() {
       <section className="dots border-b-[1.5px] border-line">
         <Wrap className="py-14">
           <div className="flex max-w-[640px] flex-col gap-3.5">
-            <Eyebrow>04 · Projects</Eyebrow>
-            <h1 className="hl m-0 text-[64px] md:text-[96px]">The work.</h1>
+            <Eyebrow>Projects</Eyebrow>
+            <h1 className="hl m-0 text-[64px] md:text-[96px]">The work</h1>
             <p className="m-0 max-w-[480px] text-base leading-[1.6] text-body">
               Everything we&apos;ve built, are building, or keep sketching on napkins. Each one has a full write-up with
               the build log, what broke, and what we learned.

@@ -25,6 +25,13 @@ export function PageTransitionProvider({ children }: { children: React.ReactNode
   // Remember which page we are leaving; once the path changes the cover lifts by itself.
   const [leavingFrom, setLeavingFrom] = useState<string | null>(null)
   const timer = useRef<number | undefined>(undefined)
+  // Once we arrive on a new page, forget the page we left. Otherwise pressing the browser's
+  // back button returns to that page with the fade cover still over it (a blank screen).
+  const [shownPath, setShownPath] = useState(pathname)
+  if (pathname !== shownPath) {
+    setShownPath(pathname)
+    setLeavingFrom(null)
+  }
 
   useEffect(() => () => window.clearTimeout(timer.current), [])
 

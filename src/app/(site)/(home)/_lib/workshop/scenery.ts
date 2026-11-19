@@ -343,7 +343,7 @@ export function drawBackLayer() {
   line(iso(WX0 + 0.25, 0, (WZ0 + WZ1) / 2), iso(WX1 - 0.25, 0, (WZ0 + WZ1) / 2), 4, '#FFFFFF')
   box(WX0 - 0.2, 0, WZ0 - 0.2, WX1 - WX0 + 0.4, 0.45, 0.2, '#FFFFFF', '#EEEBE5', '#E2DDD4')
 
-  // framed poster right of the window, above the lamp
+  // framed poster right of the window
   const poster = (u: number, z: number) => iso(10.6 + u, 0, z)
   polygon([poster(0, 4.7), poster(1.3, 4.7), poster(1.3, 7.1), poster(0, 7.1)], '#2A2F36')
   polygon([poster(0.1, 4.8), poster(1.2, 4.8), poster(1.2, 7.0), poster(0.1, 7.0)], '#FBFAF7')
