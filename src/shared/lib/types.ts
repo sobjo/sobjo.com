@@ -28,8 +28,6 @@ export interface Project {
   builders: Builder[]
   summary: string | null
   tools: string | null
-  /** Build steps done out of total. Only set for projects in progress. */
-  progress: { done: number; total: number } | null
   /** A photo of the real build, shown when someone hovers the drawing. */
   photo: Image | null
   body: RichText | null

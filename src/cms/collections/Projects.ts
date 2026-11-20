@@ -55,23 +55,6 @@ export const Projects: CollectionConfig = {
     { name: 'summary', type: 'textarea', admin: { description: 'One or two sentences for the project card. Keep it short.' } },
     { name: 'tools', type: 'text', admin: { description: 'Parts and software' } },
     {
-      name: 'progress',
-      type: 'group',
-      admin: {
-        description: 'Build steps done, shown as the progress bar on the home page.',
-        condition: (_, siblingData) => siblingData?.status === 'in-progress',
-      },
-      fields: [
-        {
-          type: 'row',
-          fields: [
-            { name: 'done', type: 'number', min: 0, defaultValue: 0 },
-            { name: 'total', type: 'number', min: 1, defaultValue: 8 },
-          ],
-        },
-      ],
-    },
-    {
       name: 'photo',
       type: 'upload',
       relationTo: 'media',

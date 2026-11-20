@@ -39,7 +39,6 @@ export default function AboutPage() {
 
       <section className="border-b-[1.5px] border-line bg-white">
         <Wrap className="py-16">
-          <Eyebrow className="mb-2.5">Meet us</Eyebrow>
           <h2 className="hl mt-0 mb-7 text-[40px] md:text-[52px]">The two halves of SOBJO</h2>
           <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(380px,100%),1fr))]">
             {people.map((person) => (
@@ -51,7 +50,6 @@ export default function AboutPage() {
 
       <section className="dots border-b-[1.5px] border-line">
         <Wrap className="py-16">
-          <Eyebrow className="mb-2.5">Shared interests</Eyebrow>
           <h2 className="hl mt-0 mb-7 text-[40px] md:text-[52px]">What we geek out about</h2>
           <ul className="m-0 grid list-none gap-3.5 p-0 [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]">
             {interests.map((name) => (

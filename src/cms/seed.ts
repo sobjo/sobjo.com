@@ -42,7 +42,6 @@ async function seedProjects(payload: Payload): Promise<ProjectIds> {
         builders: project.builders,
         summary: project.summary,
         tools: project.tools,
-        progress: project.progress ?? undefined,
         illustration: project.illustration,
         tint: project.tint,
         featured: project.featured,

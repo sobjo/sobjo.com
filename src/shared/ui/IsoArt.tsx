@@ -111,9 +111,91 @@ function Letter() {
   )
 }
 
+/** Napkin corners on the 120 × 96 tile, and the matrix that maps a unit square (u, v) onto it. */
+const NAPKIN = 'M16 46L60 24L104 46L60 68Z'
+const ON_NAPKIN = 'matrix(44 -22 44 22 16 46)'
+
+/** A paper napkin lying flat with a ballpoint sketch on it and a pen beside it. */
+function Napkin({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <ellipse cx="60" cy="50" rx="46" ry="21" fill="#1C2128" opacity="0.08" />
+      <path d={NAPKIN} fill="#FFFFFF" stroke="#E6E1D8" strokeWidth="1" />
+      <path d="M38 35L82 57" stroke="#E6E1D8" strokeWidth="1" />
+      <g
+        transform={ON_NAPKIN}
+        fill="none"
+        stroke="#3B6FB6"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      >
+        {children}
+        {/* coffee ring */}
+        <circle cx="0.8" cy="0.78" r="0.11" stroke="#C9A27A" opacity="0.6" vectorEffect="non-scaling-stroke" />
+      </g>
+      {/* the pen */}
+      <path d="M86 30L108 48" stroke="#2A2F36" strokeWidth="4" strokeLinecap="round" />
+      <path d="M105 45.5L108 48" stroke="#3B6FB6" strokeWidth="4" strokeLinecap="round" />
+    </>
+  )
+}
+
+/** Lab ASRS: a rack of bins with a gantry rail above it and a carriage dropping into a bin. */
+function NapkinRack() {
+  const cells = [0.3, 0.45, 0.6, 0.75]
+  return (
+    <Napkin>
+      <path d="M0.3 0.3H0.75V0.75H0.3Z" vectorEffect="non-scaling-stroke" />
+      {cells.slice(1, 3).map((c) => (
+        <path key={c} d={`M${c} 0.3V0.75M0.3 ${c}H0.75`} vectorEffect="non-scaling-stroke" />
+      ))}
+      <path d="M0.22 0.16H0.83" vectorEffect="non-scaling-stroke" />
+      <path d="M0.42 0.11H0.52V0.21H0.42Z" vectorEffect="non-scaling-stroke" />
+      <path d="M0.47 0.23V0.4M0.43 0.36L0.47 0.4L0.51 0.36" vectorEffect="non-scaling-stroke" />
+    </Napkin>
+  )
+}
+
+/** Home Agent: a house with a chat bubble beside it. */
+function NapkinHouse() {
+  return (
+    <Napkin>
+      <path d="M0.2 0.8V0.47L0.4 0.27L0.6 0.47V0.8Z" vectorEffect="non-scaling-stroke" />
+      <path d="M0.34 0.8V0.62H0.46V0.8" vectorEffect="non-scaling-stroke" />
+      <circle cx="0.76" cy="0.36" r="0.11" vectorEffect="non-scaling-stroke" />
+      <path d="M0.69 0.44L0.64 0.52" vectorEffect="non-scaling-stroke" />
+      <g fill="#3B6FB6" stroke="none">
+        <circle cx="0.72" cy="0.36" r="0.012" />
+        <circle cx="0.76" cy="0.36" r="0.012" />
+        <circle cx="0.8" cy="0.36" r="0.012" />
+      </g>
+    </Napkin>
+  )
+}
+
+/** Any other idea: a gear with a question mark. */
+function NapkinGear() {
+  const teeth = Array.from({ length: 24 }, (_, i) => {
+    const a = (i / 24) * Math.PI * 2
+    const r = i % 2 ? 0.24 : 0.19
+    return `${(0.45 + Math.cos(a) * r).toFixed(3)} ${(0.48 + Math.sin(a) * r).toFixed(3)}`
+  })
+  return (
+    <Napkin>
+      <path d={`M${teeth.join('L')}Z`} vectorEffect="non-scaling-stroke" />
+      <circle cx="0.45" cy="0.48" r="0.07" vectorEffect="non-scaling-stroke" />
+    </Napkin>
+  )
+}
+
 /** Every drawing, by name. */
 const ART = {
   idea: Idea,
+  'napkin-rack': NapkinRack,
+  'napkin-house': NapkinHouse,
+  'napkin-gear': NapkinGear,
   plushies: Plushies,
   breadboard: Breadboard,
   books: Books,

@@ -52,7 +52,6 @@ function toProject(doc: ProjectDoc): Project {
     builders: doc.builders ?? [],
     summary: doc.summary ?? null,
     tools: doc.tools ?? null,
-    progress: toProgress(doc),
     photo: toImage(doc.photo),
     body: (doc.body as RichText | null | undefined) ?? null,
     illustration: doc.illustration ?? 'idea',
@@ -60,14 +59,6 @@ function toProject(doc: ProjectDoc): Project {
     featured: Boolean(doc.featured),
     ctaLabel: doc.ctaLabel || DEFAULT_CTA[doc.status],
   }
-}
-
-/** Build progress only makes sense while a project is in progress and has steps. */
-function toProgress(doc: ProjectDoc): Project['progress'] {
-  const done = doc.progress?.done ?? 0
-  const total = doc.progress?.total ?? 0
-  if (doc.status !== 'in-progress' || total <= 0) return null
-  return { done: Math.min(done, total), total }
 }
 
 // ------------------------------------------------------------------ notebook

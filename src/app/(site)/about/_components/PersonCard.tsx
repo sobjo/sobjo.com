@@ -1,5 +1,4 @@
 import type { Person } from '@/content/about'
-import { BuilderPill } from '@/shared/ui/BuilderPill'
 
 import { PersonPhoto } from './PersonPhoto'
 
@@ -11,9 +10,6 @@ export function PersonCard({ person }: { person: Person }) {
     <article className={`card flex flex-wrap gap-6 border-t-[6px]! p-6 ${accentBorder}`}>
       <PersonPhoto person={person} />
       <div className="flex min-w-0 flex-[1_1_220px] flex-col gap-3">
-        <span className="mono self-start text-[11px]">
-          <BuilderPill builder={person.id} />
-        </span>
         <h3 className="hl m-0 text-[40px]">
           {person.firstName} {person.lastName}
         </h3>
@@ -29,7 +25,8 @@ export function PersonCard({ person }: { person: Person }) {
           <dt className="mono pt-[3px] text-[10px] text-muted">On our builds</dt>
           <dd className="m-0 text-body">{person.onOurBuilds}</dd>
         </dl>
-        <div className="flex flex-wrap gap-5">
+        {/* mt-auto pins the links to the bottom, so both cards' links line up. */}
+        <div className="mt-auto flex flex-wrap gap-5">
           <a href={person.linkedin} className="ulink py-2">
             LinkedIn
           </a>

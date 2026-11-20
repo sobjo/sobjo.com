@@ -147,19 +147,9 @@ export interface Project {
    */
   summary?: string | null;
   /**
-   * Who did what
-   */
-  /**
    * Parts and software
    */
   tools?: string | null;
-  /**
-   * Build steps done, shown as the progress bar on the home page.
-   */
-  progress?: {
-    done?: number | null;
-    total?: number | null;
-  };
   photo?: (number | null) | Media;
   /**
    * The full write-up: build log, what broke, what you learned.
@@ -463,12 +453,6 @@ export interface ProjectsSelect<T extends boolean = true> {
   builders?: T;
   summary?: T;
   tools?: T;
-  progress?:
-    | T
-    | {
-        done?: T;
-        total?: T;
-      };
   photo?: T;
   body?: T;
   illustration?: T;

@@ -2,7 +2,6 @@ import { site } from '@/content/site'
 import { FadeLink } from '@/shared/layout/PageTransition'
 import type { Project } from '@/shared/lib/types'
 import { Eyebrow } from '@/shared/ui/Eyebrow'
-import { CompleteBar, ProgressBar } from '@/shared/ui/ProgressBar'
 import { ProjectMedia } from '@/shared/ui/ProjectMedia'
 import { StatusBadge } from '@/shared/ui/StatusBadge'
 import { Wrap } from '@/shared/ui/Wrap'
@@ -43,11 +42,6 @@ function FeaturedProjectCard({ project }: { project: Project }) {
           />
         </div>
         <span className="hl text-[32px]">{project.title}</span>
-        {project.progress ? (
-          <ProgressBar done={project.progress.done} total={project.progress.total} />
-        ) : project.status === 'finished' ? (
-          <CompleteBar />
-        ) : null}
         <span className="ulink">{project.ctaLabel} →</span>
       </div>
     </FadeLink>

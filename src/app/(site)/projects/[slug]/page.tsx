@@ -5,7 +5,6 @@ import { notFound } from 'next/navigation'
 import { FadeLink } from '@/shared/layout/PageTransition'
 import { getProject, getProjects } from '@/shared/lib/content'
 import { Eyebrow } from '@/shared/ui/Eyebrow'
-import { ProgressBar } from '@/shared/ui/ProgressBar'
 import { ProjectMedia } from '@/shared/ui/ProjectMedia'
 import { StatusBadge } from '@/shared/ui/StatusBadge'
 import { Wrap } from '@/shared/ui/Wrap'
@@ -38,26 +37,12 @@ export default async function ProjectPage({ params }: Props) {
       <section className="dots border-b-[1.5px] border-line">
         <Wrap className="flex flex-wrap items-center gap-10 pt-12 pb-14">
           <div className="flex min-w-0 flex-[1_1_420px] flex-col gap-3.5">
-            <Eyebrow>
-              <FadeLink href="/projects" className="no-underline">
-                Projects
-              </FadeLink>{' '}
-              / {project.title}
-            </Eyebrow>
             <div className="mono flex flex-wrap items-center gap-2 text-[10px] text-muted">
               <StatusBadge status={project.status} />
               {project.year && <span>{project.year}</span>}
             </div>
             <h1 className="hl m-0 text-[64px] md:text-[96px]">{project.title}</h1>
             {project.summary && <p className="m-0 max-w-[520px] text-base leading-[1.6] text-body">{project.summary}</p>}
-            {project.progress && (
-              <div className="flex max-w-[360px] flex-col gap-2">
-                <span className="mono text-[10px] text-muted">
-                  Build progress · {project.progress.done} of {project.progress.total}
-                </span>
-                <ProgressBar done={project.progress.done} total={project.progress.total} />
-              </div>
-            )}
           </div>
           <div className="card flex-[1_1_380px] overflow-hidden p-3">
             <ProjectMedia

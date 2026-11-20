@@ -29,7 +29,7 @@ export function ProjectMedia({
       tabIndex={photo ? 0 : undefined}
     >
       <IsoArt
-        name={project.illustration}
+        name={project.illustration === 'idea' ? napkinSketchFor(project.slug) : project.illustration}
         floor={false}
         width={artSize}
         height={artSize * 0.8}
@@ -52,4 +52,11 @@ export function ProjectMedia({
       )}
     </div>
   )
+}
+
+/** Which sketch a napkin idea's picture shows, matched from its slug. */
+function napkinSketchFor(slug: string) {
+  if (/asrs|storage|retriev/.test(slug)) return 'napkin-rack'
+  if (/home|house|agent/.test(slug)) return 'napkin-house'
+  return 'napkin-gear'
 }

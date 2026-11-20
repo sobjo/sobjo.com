@@ -21,9 +21,12 @@ export function ProjectCard({ project }: { project: Project }) {
             <dd className="m-0 font-sans text-[13px] tracking-normal normal-case">{project.tools}</dd>
           </dl>
         )}
-        <FadeLink href={`/projects/${project.slug}`} className="ulink self-start py-2">
-          {project.ctaLabel} →
-        </FadeLink>
+        {/* Napkin sketches are only ideas so far, so their cards don't link to a write-up. */}
+        {project.status !== 'napkin' && (
+          <FadeLink href={`/projects/${project.slug}`} className="ulink self-start py-2">
+            {project.ctaLabel} →
+          </FadeLink>
+        )}
       </div>
     </article>
   )
