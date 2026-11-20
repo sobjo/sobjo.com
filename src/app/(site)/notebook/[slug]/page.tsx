@@ -1,4 +1,3 @@
-import { RichText } from '@payloadcms/richtext-lexical/react'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
@@ -7,11 +6,9 @@ import { FadeLink } from '@/shared/layout/PageTransition'
 import { getPost, getPosts } from '@/shared/lib/content'
 import { BuilderPill } from '@/shared/ui/BuilderPill'
 import { Eyebrow } from '@/shared/ui/Eyebrow'
+import { Markdown } from '@/shared/ui/Markdown'
 import { entryLabel } from '@/shared/ui/PostCard'
 import { Wrap } from '@/shared/ui/Wrap'
-
-/** Refresh the page from the CMS at most every 5 minutes. */
-export const revalidate = 300
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -65,7 +62,7 @@ export default async function NotebookEntryPage({ params }: Props) {
               />
             )}
             {post.content ? (
-              <RichText data={post.content} className="richtext" />
+              <Markdown text={post.content} />
             ) : (
               <p className="text-[17px] leading-[1.7] text-body">[The entry goes here.]</p>
             )}

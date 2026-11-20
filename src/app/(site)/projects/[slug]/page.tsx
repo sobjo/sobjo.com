@@ -1,18 +1,15 @@
-import { RichText } from '@payloadcms/richtext-lexical/react'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 import { FadeLink } from '@/shared/layout/PageTransition'
 import { getProject, getProjects } from '@/shared/lib/content'
 import { Eyebrow } from '@/shared/ui/Eyebrow'
+import { Markdown } from '@/shared/ui/Markdown'
 import { ProjectMedia } from '@/shared/ui/ProjectMedia'
 import { StatusBadge } from '@/shared/ui/StatusBadge'
 import { Wrap } from '@/shared/ui/Wrap'
 
 import { ProjectFacts } from './_components/ProjectFacts'
-
-/** Refresh the page from the CMS at most every 5 minutes. */
-export const revalidate = 300
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -60,7 +57,7 @@ export default async function ProjectPage({ params }: Props) {
           <article className="min-w-0 flex-[2_1_520px]">
             <Eyebrow className="mb-2.5">The write-up</Eyebrow>
             {project.body ? (
-              <RichText data={project.body} className="richtext" />
+              <Markdown text={project.body} />
             ) : (
               <p className="text-[17px] leading-[1.7] text-body">
                 [The full write-up goes here: the build log, what broke, and what we learned.]

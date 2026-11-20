@@ -7,8 +7,8 @@ const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const nextConfig: NextConfig = {
   images: {
-    // CMS uploads, plus the photos that ship with the site in public/about
-    localPatterns: [{ pathname: '/api/media/file/**' }, { pathname: '/about/**' }],
+    // CMS uploads, the photos that ship with the site in public/about, and photos added at /update-site
+    localPatterns: [{ pathname: '/api/media/file/**' }, { pathname: '/about/**' }, { pathname: '/uploads/**' }],
     remotePatterns: [{ protocol: 'https', hostname: '*.public.blob.vercel-storage.com' }],
   },
   async redirects() {

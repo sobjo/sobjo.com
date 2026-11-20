@@ -2,21 +2,25 @@ import config from '@payload-config'
 import { getPayload } from 'payload'
 import { cache } from 'react'
 
-import { placeholderBench, placeholderPosts, placeholderProjects } from '@/content/placeholder'
-import type { Media as MediaDoc, Post as PostDoc, Project as ProjectDoc, Tool as ToolDoc } from '@/payload-types'
+import notebookFile from '@/content/notebook.json'
+import { placeholderBench } from '@/content/placeholder'
+import projectsFile from '@/content/projects.json'
+import type { Tool as ToolDoc } from '@/payload-types'
 
+import type { NotebookEntry, ProjectEntry, StoredImage } from './content-files'
+import { readMinutes } from './content-files'
 import { DEFAULT_CTA } from './labels'
-import type { BenchContent, Equipment, Image, Part, Post, Project, RichText, Software } from './types'
+import type { BenchContent, Equipment, Image, Part, Post, Project, Software } from './types'
 
 /*
  * Every page reads its content through the `get…` functions in this file.
  *
- * With DATABASE_URL set they query the Payload CMS. Without it (a fresh clone,
- * or a preview with no database) they return the placeholder content from
- * src/content/placeholder.ts, so the site still renders.
+ * Projects and notebook entries come from the content files src/content/projects.json
+ * and src/content/notebook.json, which the private /update-site editor commits to
+ * GitHub (each save redeploys the site).
  *
- * The `to…` helpers turn raw CMS documents into the simpler shapes in
- * ./types.ts that the pages use.
+ * Bench items come from the Payload CMS when DATABASE_URL is set, and from the
+ * placeholder content in src/content/placeholder.ts when it isn't.
  */
 
 const hasDatabase = Boolean(process.env.DATABASE_URL)
@@ -24,83 +28,60 @@ const hasDatabase = Boolean(process.env.DATABASE_URL)
 /** One Payload client per request. */
 const getPayloadClient = cache(() => getPayload({ config }))
 
-/** Only published notebook entries; drafts stay hidden. */
-const PUBLISHED_ONLY = { _status: { equals: 'published' } } as const
-
-const dateFormat = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+const dateFormat = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
 
 // ------------------------------------------------------------------ projects
 
-export const getProjects = cache(async (): Promise<Project[]> => {
-  if (!hasDatabase) return placeholderProjects
-  const payload = await getPayloadClient()
-  const { docs } = await payload.find({ collection: 'projects', sort: 'order', limit: 100, depth: 1 })
-  return docs.map(toProject)
-})
+export const getProjects = cache(async (): Promise<Project[]> => (projectsFile as ProjectEntry[]).map(toProject))
 
 export const getProject = cache(async (slug: string): Promise<Project | null> => {
   const projects = await getProjects()
   return projects.find((project) => project.slug === slug) ?? null
 })
 
-function toProject(doc: ProjectDoc): Project {
+function toProject(entry: ProjectEntry): Project {
   return {
-    slug: doc.slug,
-    title: doc.title,
-    status: doc.status,
-    year: doc.year ?? null,
-    builders: doc.builders ?? [],
-    summary: doc.summary ?? null,
-    tools: doc.tools ?? null,
-    photo: toImage(doc.photo),
-    body: (doc.body as RichText | null | undefined) ?? null,
-    illustration: doc.illustration ?? 'idea',
-    tint: doc.tint ?? 'paper',
-    featured: Boolean(doc.featured),
-    ctaLabel: doc.ctaLabel || DEFAULT_CTA[doc.status],
+    ...entry,
+    photo: fileImage(entry.photo),
+    body: entry.body.trim() || null,
+    ctaLabel: entry.ctaLabel || DEFAULT_CTA[entry.status],
   }
 }
 
 // ------------------------------------------------------------------ notebook
 
-export const getPosts = cache(async (): Promise<Post[]> => {
-  if (!hasDatabase) return placeholderPosts
-  const payload = await getPayloadClient()
-  const { docs } = await payload.find({
-    collection: 'posts',
-    where: PUBLISHED_ONLY,
-    sort: '-publishedAt',
-    limit: 100,
-    depth: 1,
-  })
-  return docs.map(toPost)
-})
+/** Published notebook entries, newest first. Drafts stay hidden. */
+export const getPosts = cache(async (): Promise<Post[]> =>
+  (notebookFile as NotebookEntry[])
+    .filter((entry) => entry.status === 'published')
+    .map(toPost)
+    .sort((a, b) => (b.publishedAt ?? '').localeCompare(a.publishedAt ?? '')),
+)
 
 export const getPost = cache(async (slug: string): Promise<Post | null> => {
-  if (!hasDatabase) return placeholderPosts.find((post) => post.slug === slug) ?? null
-  const payload = await getPayloadClient()
-  const { docs } = await payload.find({
-    collection: 'posts',
-    where: { and: [PUBLISHED_ONLY, { slug: { equals: slug } }] },
-    limit: 1,
-    depth: 1,
-  })
-  return docs[0] ? toPost(docs[0]) : null
+  const posts = await getPosts()
+  return posts.find((post) => post.slug === slug) ?? null
 })
 
-function toPost(doc: PostDoc): Post {
+function toPost(entry: NotebookEntry): Post {
+  const minutes = readMinutes(entry.content)
   return {
-    slug: doc.slug,
-    title: doc.title,
-    summary: doc.summary ?? null,
-    entryNumber: doc.entryNumber ?? null,
-    author: doc.author,
-    category: doc.category ?? null,
-    dateLabel: doc.publishedAt ? dateFormat.format(new Date(doc.publishedAt)) : null,
-    readLabel: doc.readMinutes ? `${doc.readMinutes} min` : null,
-    content: (doc.content as RichText | null | undefined) ?? null,
-    coverImage: toImage(doc.coverImage),
+    slug: entry.slug,
+    title: entry.title,
+    summary: entry.summary,
+    entryNumber: entry.entryNumber,
+    author: entry.author,
+    category: entry.category,
+    publishedAt: entry.publishedAt,
+    dateLabel: entry.publishedAt ? dateFormat.format(new Date(`${entry.publishedAt}T00:00:00Z`)) : null,
+    readLabel: minutes ? `${minutes} min` : null,
+    content: entry.content.trim() || null,
+    coverImage: fileImage(entry.coverImage),
   }
+}
+
+function fileImage(image: StoredImage | null): Image | null {
+  return image ? { url: image.url, alt: image.alt, width: image.width, height: image.height } : null
 }
 
 // ------------------------------------------------------------------ bench
@@ -153,11 +134,6 @@ function toSoftware(doc: ToolDoc): Software {
 }
 
 // ------------------------------------------------------------------ shared helpers
-
-function toImage(media: number | MediaDoc | null | undefined): Image | null {
-  if (!media || typeof media === 'number' || !media.url) return null
-  return { url: media.url, alt: media.alt, width: media.width ?? undefined, height: media.height ?? undefined }
-}
 
 /** The titles of the projects a tool is used in (ignores links that were not loaded). */
 function projectTitles(projects: ToolDoc['usedIn']): string[] {

@@ -1,0 +1,104 @@
+[
+  {
+    "slug": "cheetah",
+    "title": "Cheetah",
+    "status": "in-progress",
+    "year": "Started July 2026",
+    "builders": [
+      "gunnar",
+      "ivanna"
+    ],
+    "summary": "A small four-legged robot dog in the spirit of the MIT Mini Cheetah. We are building it from the ground up and teaching it to stand, walk and, one day, run.",
+    "tools": "[Parts and software]",
+    "illustration": "cheetah",
+    "tint": "sand",
+    "featured": true,
+    "ctaLabel": "Follow the build",
+    "photo": null,
+    "body": ""
+  },
+  {
+    "slug": "cubli",
+    "title": "Cubli",
+    "status": "finished",
+    "year": "June 2026 – October 2026",
+    "builders": [
+      "gunnar",
+      "ivanna"
+    ],
+    "summary": "A cube that balances on one corner. Three reaction wheels inside spin up and brake to keep it standing.",
+    "tools": "[Parts and software]",
+    "illustration": "cube",
+    "tint": "steel",
+    "featured": true,
+    "ctaLabel": "Read the report",
+    "photo": null,
+    "body": ""
+  },
+  {
+    "slug": "miniq",
+    "title": "MiniQ",
+    "status": "in-progress",
+    "year": "Started October 2026",
+    "builders": [
+      "gunnar",
+      "ivanna"
+    ],
+    "summary": "A miniature Cubli. The same self-balancing cube idea, shrunk down to a fraction of the size.",
+    "tools": "[Parts and software]",
+    "illustration": "miniq",
+    "tint": "blush",
+    "featured": false,
+    "ctaLabel": "Follow the build",
+    "photo": null,
+    "body": ""
+  },
+  {
+    "slug": "kvm-board",
+    "title": "KVM Board",
+    "status": "in-progress",
+    "year": "Started July 2026",
+    "builders": [
+      "gunnar",
+      "ivanna"
+    ],
+    "summary": "A Linux board the size of a flash drive that works as a KVM. Plug it into a computer and control its keyboard, video and mouse from somewhere else.",
+    "tools": "[Parts and software]",
+    "illustration": "kvm",
+    "tint": "paper",
+    "featured": false,
+    "ctaLabel": "Follow the build",
+    "photo": null,
+    "body": ""
+  },
+  {
+    "slug": "lab-asrs",
+    "title": "Lab ASRS",
+    "status": "napkin",
+    "year": "Someday",
+    "builders": [],
+    "summary": "An automated storage and retrieval system (ASRS) for our mechatronics lab: ask for a part and a gantry fetches its bin.",
+    "tools": "[Probably]",
+    "illustration": "idea",
+    "tint": "paper",
+    "featured": false,
+    "ctaLabel": "See the sketch",
+    "photo": null,
+    "body": ""
+  },
+  {
+    "slug": "home-agent",
+    "title": "Home Agent",
+    "status": "napkin",
+    "year": "Someday",
+    "builders": [],
+    "summary": "An autonomous home run by our own AI agent, hosted on our laptops instead of someone else's cloud.",
+    "tools": "[Probably]",
+    "illustration": "idea",
+    "tint": "paper",
+    "featured": false,
+    "ctaLabel": "See the sketch",
+    "photo": null,
+    "body": ""
+  }
+]

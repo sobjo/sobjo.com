@@ -10,14 +10,14 @@ cp .env.example .env
 npm run dev
 ```
 
-Open http://localhost:3000. With no `DATABASE_URL` in `.env`, every page renders from the placeholder content in `src/content/placeholder.ts`, so you can work on the UI without a database.
+Open http://localhost:3000. Projects and notebook entries come from `src/content/projects.json` and `src/content/notebook.json`. With no `DATABASE_URL` in `.env`, the Bench page uses the placeholder items in `src/content/placeholder.ts`, so you can work on the UI without a database.
 
 ## Turn on the CMS
 
 1. Create a Postgres database (Neon or Supabase free tier) and put its connection string in `DATABASE_URL`. Set `PAYLOAD_SECRET` to a long random string.
 2. `npm run dev`. In development Payload creates the tables for you.
 3. Open http://localhost:3000/addpost and create the first user.
-4. `npm run seed` copies the placeholder projects, notebook entries and bench items into the database so you can edit them instead of starting empty. It skips anything that already exists.
+4. `npm run seed` copies the placeholder bench items (and the projects, so bench items can link to them) into the database so you can edit them instead of starting empty. It skips anything that already exists.
 
 When you change a collection in `src/cms/collections`, run:
 
@@ -69,38 +69,63 @@ A few conventions:
 
 | Page | Route | Code | Content comes from |
 | --- | --- | --- | --- |
-| Home (playable workshop) | `/` | `src/app/(site)/(home)` | Belt items in `_lib/workshop/items.ts`; featured projects from the CMS; "right now" blurb in `src/content/site.ts` |
+| Home (playable workshop) | `/` | `src/app/(site)/(home)` | Desk drawings in `_lib/workshop/items.ts`; projects from `src/content/projects.json`; "right now" blurb in `src/content/site.ts` |
 | About | `/about` | `src/app/(site)/about` | `src/content/about.ts` (people, photos, interests) |
 | Bench | `/bench` | `src/app/(site)/bench` | CMS **Bench items** (equipment, hardware, software) |
-| Projects | `/projects`, `/projects/[slug]` | `src/app/(site)/projects` | CMS **Projects** |
-| Notebook | `/notebook`, `/notebook/[slug]` | `src/app/(site)/notebook` | CMS **Notebook entries** (drafts stay hidden until published) |
+| Projects | `/projects`, `/projects/[slug]` | `src/app/(site)/projects` | `src/content/projects.json`, edited at /update-site |
+| Notebook | `/notebook`, `/notebook/[slug]` | `src/app/(site)/notebook` | `src/content/notebook.json`, edited at /update-site (drafts stay hidden) |
 | Say hi | `/say-hi` | `src/app/(site)/say-hi` | Placeholder until the contact form is built |
-| Editor | `/addpost` | `src/app/(payload)` | Payload admin |
+| Editor | `/update-site` | `src/app/(admin)/update-site` | Private editor for projects and the notebook |
+| CMS admin | `/addpost` | `src/app/(payload)` | Payload admin (bench items) |
 
 - Photos for the About page go in `public/about/` and are referenced from `src/content/about.ts`.
 - Uploads go to the local `media/` folder in development, and to Vercel Blob once `BLOB_READ_WRITE_TOKEN` is set.
 - Saving anything in the CMS refreshes the site's pages; otherwise pages refresh every 5 minutes.
 
-## Planned: the /update-site page
+## The /update-site editor
 
-A private page for editing the site's content without the CMS: sign in with Google (Auth.js, limited to an email allowlist), edit, and the change is committed to this repo on GitHub (Octokit), which redeploys the site on Vercel. Nothing is built yet; this is where it would go:
+A private page at **/update-site** for editing projects and writing notebook entries without touching code. Sign in with Google (only the emails in `ALLOWED_EMAILS` get in), edit, and press **Save and publish**: the change is committed to `main` on GitHub as `sobjo`, and Vercel redeploys the site in a minute or two.
+
+What it edits:
+
+| Tab | File | What you can change |
+| --- | --- | --- |
+| Projects | `src/content/projects.json` | Title, link name, status, dates, builders, summary, home page feature, card link text, drawing, background, photo of the real build, parts and software, the write-up (Markdown), order, add and delete |
+| Notebook | `src/content/notebook.json` | Title, link name, draft or published, date, author, category, entry number, summary, cover photo, the text (Markdown, with photos), add and delete |
+
+Photos are shrunk in the browser and committed to `public/uploads/projects/` or `public/uploads/notebook/` along with the content. The drawings themselves are code (shared with the home page desk), so the editor picks one of them; a brand new drawing still needs code.
+
+Drafts never show on the site. The Notebook page shows "Nothing to see here yet" until an entry is published.
+
+### Settings it needs (Vercel → Project → Settings → Environment Variables)
+
+| Name | Where it comes from |
+| --- | --- |
+| `AUTH_SECRET` | Any long random string. `npx auth secret` makes one. |
+| `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | Google Cloud console → APIs & Services → Credentials → Create OAuth client ID → Web application. Add `https://sobjo.com/api/auth/callback/google` (and `http://localhost:3000/api/auth/callback/google` for local use) as authorized redirect URIs. |
+| `ALLOWED_EMAILS` | The Google emails that may sign in, separated by commas. |
+| `GITHUB_TOKEN` | GitHub → Settings → Developer settings → Fine-grained tokens. Repository access: only `sobjo/sobjo.com`. Permissions: Contents, read and write. Renew it every Jan 1. |
+| `GITHUB_REPO`, `GITHUB_BRANCH` | Optional; default to `sobjo/sobjo.com` and `main`. |
+
+Until the sign-in keys are set, /update-site shows which ones are missing. Without `GITHUB_TOKEN` you can sign in and look around, but saving is off.
+
+### Where the code is
 
 ```
-src/app/(admin)/                       a separate route group, with its own layout (no public header or footer)
-├── layout.tsx
+src/app/(admin)/                           its own layout: site fonts and colors, no header or footer, not indexed
 └── update-site/
-    ├── page.tsx                       the editor
-    ├── _components/                   its forms and previews
-    └── _lib/                          helpers only this page uses
+    ├── page.tsx                           sign-in screen or the editor
+    ├── _components/                       Editor (tabs, list, save bar), ProjectForm, EntryForm, fields
+    └── _lib/                              loading the content files, shrinking photos, sign-in actions
 src/app/api/auth/[...nextauth]/route.ts    Auth.js sign-in
-src/app/api/update-site/route.ts           checks the session, then commits the edited file to GitHub
+src/app/api/update-site/route.ts           checks who is signed in, checks the content, commits it
 src/shared/lib/auth.ts                     Auth.js config and the email allowlist
-src/shared/lib/github.ts                   Octokit helpers (read a file, commit a file)
-src/content/                               the files it edits, for example content/projects/*.json,
-                                           content/notebook/*.md and the workshop belt items
+src/shared/lib/github.ts                   reading and committing files with Octokit
+src/shared/lib/content-files.ts            the content file shapes, and the checks run before every commit
+src/shared/ui/Markdown.tsx                 renders write-ups and entries
 ```
 
-`/api/auth/...` and `/api/update-site` are more specific than the CMS's catch-all `/api/[...slug]`, so Next.js routes them first.
+If two people save the same tab at once, the second save is refused with a note to reload, so nobody overwrites the other.
 
 ## Not built yet
 

@@ -1,8 +1,6 @@
-import type { SerializedEditorState } from '@payloadcms/richtext-lexical/lexical'
-
 /*
- * The shapes the pages work with. src/shared/lib/content.ts builds these from
- * the CMS (or from the placeholder content), so pages never touch raw CMS documents.
+ * The shapes the pages work with. src/shared/lib/content.ts builds these from the
+ * content files (projects, notebook) and the CMS (bench), so pages never touch raw data.
  */
 
 export type Builder = 'gunnar' | 'ivanna'
@@ -10,8 +8,8 @@ export type ProjectStatus = 'in-progress' | 'finished' | 'napkin'
 /** Which isometric drawing a project's cards show (its photo fades in over it on hover). */
 export type Illustration = 'cheetah' | 'cube' | 'miniq' | 'kvm' | 'idea'
 export type Tint = 'sand' | 'steel' | 'blush' | 'paper'
-/** Long-form text written in the CMS editor. */
-export type RichText = SerializedEditorState
+/** Long-form text, written in Markdown in the /update-site editor. */
+export type Markdown = string
 
 export interface Image {
   url: string
@@ -30,7 +28,7 @@ export interface Project {
   tools: string | null
   /** A photo of the real build, shown when someone hovers the drawing. */
   photo: Image | null
-  body: RichText | null
+  body: Markdown | null
   illustration: Illustration
   tint: Tint
   featured: boolean
@@ -48,7 +46,9 @@ export interface Post {
   category: string | null
   dateLabel: string | null
   readLabel: string | null
-  content: RichText | null
+  /** When it was published, like "2026-11-20" (for sorting). */
+  publishedAt: string | null
+  content: Markdown | null
   coverImage: Image | null
 }
 

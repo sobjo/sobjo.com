@@ -1,14 +1,18 @@
 import type { Metadata } from 'next'
 
+import { getPosts } from '@/shared/lib/content'
+import { PostCard } from '@/shared/ui/PostCard'
 import { Wrap } from '@/shared/ui/Wrap'
 
 export const metadata: Metadata = { title: 'Notebook' }
 
 /**
- * The notebook is on hold for now: the entries stay in the CMS (and each entry's own page
- * still works), but this page only shows a short note until we're ready to publish them.
+ * Every published notebook entry, newest first. Entries are written at /update-site
+ * and stay hidden while they're drafts; until one is published this page shows a short note.
  */
-export default function NotebookPage() {
+export default async function NotebookPage() {
+  const posts = await getPosts()
+
   return (
     <>
       <section className="dots border-b-[1.5px] border-line">
@@ -18,7 +22,15 @@ export default function NotebookPage() {
       </section>
       <section className="bg-white">
         <Wrap className="py-16">
-          <p className="m-0 text-[17px] leading-[1.6] text-body">Nothing to see here yet, hopefully soon though!</p>
+          {posts.length === 0 ? (
+            <p className="m-0 text-[17px] leading-[1.6] text-body">Nothing to see here yet, hopefully soon though!</p>
+          ) : (
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+              {posts.map((post) => (
+                <PostCard key={post.slug} post={post} />
+              ))}
+            </div>
+          )}
         </Wrap>
       </section>
     </>

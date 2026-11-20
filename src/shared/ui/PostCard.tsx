@@ -8,7 +8,7 @@ export function entryLabel(entryNumber: number | null) {
   return entryNumber == null ? 'Entry' : `Entry ${String(entryNumber).padStart(2, '0')}`
 }
 
-/** A notebook entry preview that links to the full entry. Used on the Notebook page and on project pages. */
+/** A notebook entry preview that links to the full entry, on the Notebook page. */
 export function PostCard({ post }: { post: Post }) {
   const meta = [post.dateLabel, post.readLabel].filter(Boolean).join(' · ')
 
