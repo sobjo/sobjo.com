@@ -9,13 +9,13 @@
       "ivanna"
     ],
     "summary": "A small four-legged robot dog in the spirit of the MIT Mini Cheetah. We are building it from the ground up and teaching it to stand, walk and, one day, run.",
-    "tools": "[Parts and software]",
+    "tools": "I'll add stuff here",
     "illustration": "cheetah",
     "tint": "sand",
     "featured": true,
     "ctaLabel": "Follow the build",
     "photo": null,
-    "body": ""
+    "body": "I need to write things here. This is just a google auth verification to see if it works. :)"
   },
   {
     "slug": "cubli",
