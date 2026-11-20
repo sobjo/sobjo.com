@@ -240,7 +240,6 @@ function drawStool(x: number, y: number) {
     [0.05, 0.36],
   ])
     line(iso(x + lx * 0.7, y + ly * 0.7, SEAT - 0.1), iso(x + lx, y + ly, 0), 3.5, '#B5855A')
-  line(iso(x - 0.25, y + 0.15, 0.6), iso(x + 0.24, y + 0.1, 0.6), 2, '#B5855A')
   const top = iso(x, y, SEAT)
   const rx = 0.55 * 28 * 0.866 * 1.414
   const ry = rx / 1.732

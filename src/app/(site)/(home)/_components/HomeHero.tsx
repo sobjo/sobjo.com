@@ -4,14 +4,14 @@ import type { DeskProject } from '../_lib/workshop/items'
 import { Workshop } from './Workshop'
 
 /**
- * The hero is exactly one screen tall under the header. Wide screens put the intro to the right
- * of the workshop; tall ones stack it above. The workshop drawing scales to whatever space is left,
+ * The hero is exactly one screen tall under the header. Wide screens put the intro on the left,
+ * right up against the room's left wall; tall ones stack it above. The workshop drawing scales to whatever space is left,
  * and the robot claw works over the whole hero.
  */
 export function HomeHero({ projects }: { projects: DeskProject[] }) {
   return (
     <Workshop projects={projects}>
-      <div className="stage-blur relative z-0 flex flex-none flex-col px-6 pt-6 landscape:order-last landscape:w-[min(500px,42%)] landscape:justify-center landscape:py-6 landscape:pr-10 landscape:pl-2">
+      <div className="stage-blur relative z-0 flex flex-none flex-col px-6 pt-6 landscape:w-[min(460px,40%)] landscape:justify-center landscape:py-6 landscape:pr-0 landscape:pl-10">
         <Eyebrow className="mb-3 short:mb-2">SOBJO · The workshop&apos;s open, come on in</Eyebrow>
         <h1 className="hl m-0 text-[clamp(32px,min(13vw,6.5svh),64px)] landscape:text-[clamp(28px,min(5.5vw,8.5svh),76px)]">
           Hi, we&apos;re

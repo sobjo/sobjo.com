@@ -133,7 +133,8 @@ function keepMiniQBesideCubli(projects: DeskProject[]): DeskProject[] {
 
 /**
  * The Cubli: an aluminum cube frame balancing on one corner. Three reaction wheels sit
- * on the three faces around the top corner and keep spinning to hold it upright.
+ * on the three faces that meet at that bottom corner, nudged toward it, and keep spinning
+ * to hold it upright.
  * `edge` sets its size, so the same drawing makes the small MiniQ.
  */
 function drawCubli(x: number, y: number, z: number, t: number, edge = CUBLI_EDGE) {
@@ -151,7 +152,7 @@ function drawCubli(x: number, y: number, z: number, t: number, edge = CUBLI_EDGE
   const dir = (p: Vec3): Vec3 => mul(R, p)
   deskShadow(x, y, z, 0.7 * (edge / CUBLI_EDGE), 0.14 + Math.sin(t * 2.3) * 0.01)
 
-  // faces of the cube, as (axis, sign); wheels sit on the three + faces
+  // faces of the cube, as (axis, sign); wheels sit on the three − faces, the ones around the corner it balances on
   const faces: { axis: 0 | 1 | 2; sign: 1 | -1 }[] = []
   for (const axis of [0, 1, 2] as const) for (const sign of [-1, 1] as const) faces.push({ axis, sign })
   const depth = (p: Vec3) => p[0] + p[1] + p[2]
@@ -175,18 +176,25 @@ function drawCubli(x: number, y: number, z: number, t: number, edge = CUBLI_EDGE
     const quad = [corner(-1, -1), corner(1, -1), corner(1, 1), corner(-1, 1)]
     const facing = dir([f.n[0] * 2, f.n[1] * 2, f.n[2] * 2])
     const front = depth(facing) > 0
-    // thin smoked panel so the frame reads as a solid cube
-    polygon(quad, front ? '#E9EEF3' : '#B9C3CE', front ? 0.22 : 0.35)
-    if (f.sign === 1) {
-      // reaction wheel, just inside the face, spinning
+    // thin smoked panel so the frame reads as a solid cube; light enough to see the wheels through
+    polygon(quad, front ? '#E9EEF3' : '#B9C3CE', front ? 0.1 : 0.3)
+    if (f.sign === -1) {
+      // reaction wheel, just inside the face and shifted toward the balance corner, spinning
       const inset = 0.42
-      const cw = world([f.n[0] * (inset / 0.5), f.n[1] * (inset / 0.5), f.n[2] * (inset / 0.5)])
+      const toCorner = -0.1
+      const cw = world([
+        f.n[0] * (inset / 0.5) + (u[0] + v[0]) * toCorner,
+        f.n[1] * (inset / 0.5) + (u[1] + v[1]) * toCorner,
+        f.n[2] * (inset / 0.5) + (u[2] + v[2]) * toCorner,
+      ])
       const uw = dir(u)
       const vw = dir(v)
       const rimPts = circle3d(cw, uw, vw, 0.33 * edge, 28)
-      polygon(rimPts, '#D8A35C', front ? 1 : 0.6)
-      outline(rimPts, 2 * k, '#A9712E', front ? 1 : 0.6)
-      polygon(circle3d(cw, uw, vw, 0.24 * edge, 24), '#E9C38A', front ? 1 : 0.6)
+      // these faces mostly point down and away, so the wheels are seen through the frame
+      const wo = front ? 1 : 0.9
+      polygon(rimPts, '#D8A35C', wo)
+      outline(rimPts, 2 * k, '#A9712E', wo)
+      polygon(circle3d(cw, uw, vw, 0.24 * edge, 24), '#E9C38A', wo)
       const spin = t * (5 + f.axis * 1.7) * (f.axis === 1 ? -1 : 1)
       for (let s = 0; s < 3; s++) {
         const a = spin + (s * Math.PI * 2) / 3
@@ -196,9 +204,9 @@ function drawCubli(x: number, y: number, z: number, t: number, edge = CUBLI_EDGE
           cw[1] + (uw[1] * Math.cos(a) + vw[1] * Math.sin(a)) * r,
           cw[2] + (uw[2] * Math.cos(a) + vw[2] * Math.sin(a)) * r,
         )
-        line(iso(cw[0], cw[1], cw[2]), tip, 2.2 * k, '#A9712E', front ? 1 : 0.6)
+        line(iso(cw[0], cw[1], cw[2]), tip, 2.2 * k, '#A9712E', wo)
       }
-      circle(iso(cw[0], cw[1], cw[2]), 3.2 * k, '#2A2F36', front ? 1 : 0.6)
+      circle(iso(cw[0], cw[1], cw[2]), 3.2 * k, '#2A2F36', wo)
     }
     // the four aluminum edges of this face
     for (let e = 0; e < 4; e++) {

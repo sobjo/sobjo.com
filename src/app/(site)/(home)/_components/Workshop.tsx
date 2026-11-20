@@ -45,10 +45,11 @@ export function Workshop({ projects, children }: { projects: DeskProject[]; chil
   return (
     <section
       ref={stageRef}
-      className="workshop-stage dots relative flex h-[calc(100svh-var(--header-h))] touch-pan-y flex-col overflow-hidden select-none landscape:flex-row"
+      className="workshop-stage dots relative flex h-[calc(100svh-var(--header-h))] touch-pan-y flex-col overflow-hidden select-none landscape:flex-row landscape:justify-center"
     >
       {children}
-      <div className="stage-blur relative min-h-0 min-w-0 flex-1">
+      {/* On wide screens this box is exactly as wide as the drawing, so the intro sits right beside the room. */}
+      <div className="stage-blur relative min-h-0 min-w-0 flex-1 landscape:aspect-[824/768] landscape:h-full landscape:flex-[0_1_auto]">
         <svg
           ref={roomRef}
           viewBox={VIEWBOX}
