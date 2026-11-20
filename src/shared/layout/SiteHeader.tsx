@@ -52,7 +52,7 @@ export function SiteHeader() {
           aria-current={pathname === '/' ? 'page' : undefined}
           className="flex items-center gap-2.5 px-2.5 py-3.5 no-underline hover:underline hover:underline-offset-4"
         >
-          <Logo />
+          <Logo size={32} />
           <span>{site.byline}</span>
         </FadeLink>
         <div className="flex flex-wrap items-center">
