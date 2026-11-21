@@ -48,7 +48,7 @@ export default async function BenchPage() {
         </Wrap>
       </section>
 
-      <section id="hardware" className="dots scroll-mt-4 border-b-[1.5px] border-line">
+      <section id="hardware" className="scroll-mt-4 border-b-[1.5px] border-line bg-white">
         <Wrap className="py-16">
           {/* The heading is passed in so it sits on the same row as the part filters. */}
           <PartsGrid
@@ -58,7 +58,7 @@ export default async function BenchPage() {
                 <Eyebrow className="mb-2.5">Hardware</Eyebrow>
                 <h2 className="hl m-0 text-[40px] md:text-[52px]">The parts in our builds</h2>
                 <p className="mt-2.5 mb-0 max-w-[520px] text-[15px] leading-[1.55] text-body">
-                  Boards, sensors, motors and materials, each tagged with the projects that use them.
+                  The boards, sensors, motors and radios we build with.
                 </p>
               </div>
             }
@@ -81,7 +81,7 @@ export default async function BenchPage() {
         </Wrap>
       </section>
 
-      <section id="equipment" className="dots scroll-mt-4">
+      <section id="equipment" className="scroll-mt-4 bg-white">
         <Wrap className="py-16">
           <Eyebrow className="mb-2.5">Lab equipment</Eyebrow>
           <h2 className="hl mt-0 mb-7 text-[40px] md:text-[52px]">The big stuff on the bench</h2>

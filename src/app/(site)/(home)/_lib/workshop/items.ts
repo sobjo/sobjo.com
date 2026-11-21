@@ -419,10 +419,42 @@ export function drawProjectIcon(kind: ProjectIconKind) {
   else if (kind === 'miniq') drawCubli(x, y, 0, 1.3, MINIQ_EDGE)
   else if (kind === 'kvm') drawKvmBoard(x - 0.05, y, 0, 0, 'x')
   else drawCheetah(x + 0.15, y, 0, 0, 'x')
-  const c = iso(x, y, 0)
   const markup = finishLayer()
-  // frame the same floor area a 120-unit IsoArt tile would show
+  // frame the same floor area a 120-unit IsoArt tile would show, centered on the drawing itself
   const s = (half * 4 * 0.866 * UNIT_PX) / 96
-  const viewBox = [c[0] - 60 * s, c[1] - 60 * s, 120 * s, 96 * s].map(n1).join(' ')
+  const [cx, cy] = drawingCenter(markup)
+  const viewBox = [cx - 60 * s, cy - 48 * s, 120 * s, 96 * s].map(n1).join(' ')
   return { markup, viewBox }
+}
+
+/**
+ * The middle of the solid shapes in some markup (paths, circles and ellipses), leaving out
+ * see-through shadows so the object itself, not its shadow, lands in the center of the picture.
+ */
+function drawingCenter(markup: string): [number, number] {
+  let minX = Infinity
+  let minY = Infinity
+  let maxX = -Infinity
+  let maxY = -Infinity
+  const add = (px: number, py: number) => {
+    minX = Math.min(minX, px)
+    maxX = Math.max(maxX, px)
+    minY = Math.min(minY, py)
+    maxY = Math.max(maxY, py)
+  }
+  for (const [tag] of markup.matchAll(/<(path|circle|ellipse)\b[^>]*>/g)) {
+    const attr = (name: string) => Number(new RegExp(` ${name}="([^"]*)"`).exec(tag)?.[1] ?? NaN)
+    const opacity = attr('opacity')
+    if (opacity < 0.5) continue
+    if (tag.startsWith('<path')) {
+      const d = / d="([^"]*)"/.exec(tag)?.[1] ?? ''
+      for (const [, px, py] of d.matchAll(/(-?[\d.]+)[ ,](-?[\d.]+)/g)) add(Number(px), Number(py))
+    } else {
+      const rx = tag.startsWith('<circle') ? attr('r') : attr('rx')
+      const ry = tag.startsWith('<circle') ? attr('r') : attr('ry')
+      add(attr('cx') - rx, attr('cy') - ry)
+      add(attr('cx') + rx, attr('cy') + ry)
+    }
+  }
+  return [(minX + maxX) / 2, (minY + maxY) / 2]
 }

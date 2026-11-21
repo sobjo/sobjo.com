@@ -41,6 +41,7 @@ export const PART_GROUPS: { value: PartGroup; label: string; colors: [string, st
   { value: 'microcontrollers', label: 'Microcontrollers', colors: ['#4E9A85', '#2E7D6B', '#246553'] },
   { value: 'sensors', label: 'Sensors', colors: ['#7FA2CC', '#5E86B8', '#4A6FA0'] },
   { value: 'motors', label: 'Motors & drivers', colors: ['#A3ADB9', '#8C97A4', '#76818E'] },
+  { value: 'comms', label: 'Comms', colors: ['#B9A3D6', '#9C84C2', '#8169A8'] },
   { value: 'materials', label: 'Materials', colors: ['#F8D664', '#F2BE22', '#D9A40F'] },
 ]
 

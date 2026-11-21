@@ -54,7 +54,7 @@ export interface Post {
 
 /** The pieces of equipment drawn on the Bench page illustration. */
 export type BenchSpot = 'psu' | 'solder' | 'printer' | 'scope' | 'monitor'
-export type PartGroup = 'microcontrollers' | 'sensors' | 'motors' | 'materials'
+export type PartGroup = 'microcontrollers' | 'sensors' | 'motors' | 'comms' | 'materials'
 export type SoftwareGroup = 'languages' | 'cad' | 'os' | 'ai'
 
 export interface Equipment {

@@ -298,7 +298,7 @@ export interface Tool {
    * e.g. "Left end"
    */
   location?: string | null;
-  partGroup?: ('microcontrollers' | 'sensors' | 'motors' | 'materials') | null;
+  partGroup?: ('microcontrollers' | 'sensors' | 'motors' | 'comms' | 'materials') | null;
   softwareGroup?: ('languages' | 'cad' | 'os' | 'ai') | null;
   /**
    * Short badge, e.g. F360

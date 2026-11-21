@@ -68,6 +68,7 @@ export const Tools: CollectionConfig = {
         { label: 'Microcontrollers', value: 'microcontrollers' },
         { label: 'Sensors', value: 'sensors' },
         { label: 'Motors & drivers', value: 'motors' },
+        { label: 'Comms', value: 'comms' },
         { label: 'Materials', value: 'materials' },
       ],
     },

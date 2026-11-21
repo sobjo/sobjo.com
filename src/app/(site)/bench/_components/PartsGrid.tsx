@@ -52,9 +52,6 @@ export function PartsGrid({ parts, heading }: { parts: Part[]; heading: React.Re
                   <span className="mono text-[10px] text-muted">{group.label}</span>
                   <span className="hl text-2xl">{part.name}</span>
                   {part.description && <span className="text-[13px] text-body">{part.description}</span>}
-                  {part.usedIn.length > 0 && (
-                    <span className="mono text-[9px] text-muted">Used in: {part.usedIn.join(', ')}</span>
-                  )}
                 </div>
               </motion.div>
             )
