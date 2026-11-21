@@ -34,6 +34,10 @@ export interface Project {
   featured: boolean
   /** Link text on the project's card, like "Follow the build". */
   ctaLabel: string
+  /** When the project was last changed in the editor, like "2026-11-20". */
+  updatedAt: string | null
+  /** The same day for people, like "Nov 20, 2026". */
+  updatedLabel: string | null
 }
 
 export interface Post {

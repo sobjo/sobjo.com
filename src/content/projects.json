@@ -15,7 +15,8 @@
     "featured": true,
     "ctaLabel": "Follow the build",
     "photo": null,
-    "body": "I need to write things here. This is just a google cloud verification to see if it works. :)"
+    "body": "I need to write things here. This is just a google cloud verification to see if it works. :)",
+    "updatedAt": "2026-11-20"
   },
   {
     "slug": "cubli",
@@ -33,7 +34,8 @@
     "featured": true,
     "ctaLabel": "Read the report",
     "photo": null,
-    "body": ""
+    "body": "",
+    "updatedAt": "2026-11-20"
   },
   {
     "slug": "miniq",
@@ -51,7 +53,8 @@
     "featured": false,
     "ctaLabel": "Follow the build",
     "photo": null,
-    "body": ""
+    "body": "",
+    "updatedAt": "2026-11-20"
   },
   {
     "slug": "kvm-board",
@@ -69,7 +72,8 @@
     "featured": false,
     "ctaLabel": "Follow the build",
     "photo": null,
-    "body": ""
+    "body": "",
+    "updatedAt": "2026-11-20"
   },
   {
     "slug": "lab-asrs",
@@ -84,7 +88,8 @@
     "featured": false,
     "ctaLabel": "See the sketch",
     "photo": null,
-    "body": ""
+    "body": "",
+    "updatedAt": "2026-11-20"
   },
   {
     "slug": "home-agent",
@@ -99,6 +104,7 @@
     "featured": false,
     "ctaLabel": "See the sketch",
     "photo": null,
-    "body": ""
+    "body": "",
+    "updatedAt": "2026-11-20"
   }
 ]

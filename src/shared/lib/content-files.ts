@@ -42,6 +42,11 @@ export interface ProjectEntry {
   photo: StoredImage | null
   /** The write-up, in Markdown. */
   body: string
+  /**
+   * The day this project was last changed, like "2026-11-20". The save route sets it
+   * whenever a save changes the project, so it never needs to be typed in.
+   */
+  updatedAt?: string | null
 }
 
 export interface NotebookEntry {
@@ -147,6 +152,7 @@ export function cleanProjects(input: unknown): ProjectEntry[] {
       ctaLabel: text(p.ctaLabel, `${title} link text`, { max: 60 }) ?? '',
       photo: image(p.photo, `${title} photo`),
       body: text(p.body, `${title} write-up`, { max: 200000 }) ?? '',
+      updatedAt: typeof p.updatedAt === 'string' && DAY.test(p.updatedAt) ? p.updatedAt : null,
     }
   })
   uniqueSlugs(
@@ -154,6 +160,33 @@ export function cleanProjects(input: unknown): ProjectEntry[] {
     'project',
   )
   return projects
+}
+
+const DAY = /^\d{4}-\d{2}-\d{2}$/
+
+/**
+ * Sets `updatedAt` to `today` on every project this save adds or changes, and keeps
+ * the old date on the rest. Moving a project up or down the list doesn't count.
+ */
+export function stampProjects(projects: ProjectEntry[], before: ProjectEntry[], today: string): ProjectEntry[] {
+  const previous = new Map(before.map((p) => [p.slug, p]))
+  const content = ({ updatedAt: _updatedAt, ...rest }: ProjectEntry) => JSON.stringify(rest)
+  return projects.map((project) => {
+    const old = previous.get(project.slug)
+    const unchanged = old && content(cleanProjects([old])[0]) === content(project)
+    return { ...project, updatedAt: unchanged ? (old.updatedAt ?? null) : today }
+  })
+}
+
+/**
+ * The editor sends the day it is where the person saving is, so a late-evening save
+ * isn't dated tomorrow. Anything more than a day off the server's clock is ignored.
+ */
+export function saveDay(sent: unknown, now = new Date()): string {
+  const utc = now.toISOString().slice(0, 10)
+  if (typeof sent !== 'string' || !DAY.test(sent)) return utc
+  const gap = Math.abs(Date.parse(`${sent}T00:00:00Z`) - Date.parse(`${utc}T00:00:00Z`))
+  return gap <= 86_400_000 ? sent : utc
 }
 
 export function cleanEntries(input: unknown): NotebookEntry[] {

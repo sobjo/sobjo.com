@@ -37,6 +37,12 @@ interface Collection<T> {
   status: { kind: 'idle' | 'saving' | 'saved' | 'error'; text?: string; link?: string }
 }
 
+/** Today where the editor is open, like "2026-11-20". */
+function localDay() {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+}
+
 let nextKey = 0
 const newKey = () => `item-${nextKey++}`
 const strip = <T,>(items: (T & { key: string })[]) => items.map(({ key: _key, ...item }) => item as T)
@@ -68,6 +74,7 @@ function blankProject(): ProjectEntry {
     ctaLabel: '',
     photo: null,
     body: '',
+    updatedAt: null,
   }
 }
 
@@ -195,9 +202,15 @@ export function Editor({
       const response = await fetch('/api/update-site', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ kind, items, sha: state[kind].sha, uploads }),
+        body: JSON.stringify({ kind, items, sha: state[kind].sha, uploads, today: localDay() }),
       })
-      const result = (await response.json().catch(() => ({}))) as { sha?: string; commitUrl?: string; error?: string }
+      const result = (await response.json().catch(() => ({}))) as {
+        sha?: string
+        commitUrl?: string
+        error?: string
+        /** What was saved, with projects' new last updated dates filled in. */
+        items?: Item[]
+      }
       if (!response.ok || !result.sha) throw new Error(result.error ?? 'Saving didn’t work. Try again.')
 
       setPhotos((all) =>
@@ -208,9 +221,16 @@ export function Editor({
           ]),
         ),
       )
+      // Only the dates come back from the server; everything else stays as typed.
+      const dates = new Map(
+        (result.items ?? []).filter((item) => 'updatedAt' in item).map((item) => [item.slug, (item as ProjectEntry).updatedAt]),
+      )
+      const withDate = <T extends Item>(item: T): T =>
+        dates.has(item.slug) ? { ...item, updatedAt: dates.get(item.slug) } : item
       update(kind, (c) => ({
         ...c,
-        saved: text,
+        items: c.items.map((item) => withDate(item)),
+        saved: JSON.stringify(items.map((item) => withDate(item))),
         sha: result.sha!,
         fresh: [],
         status: { kind: 'saved', text: 'Saved. The site updates in a minute or two.', link: result.commitUrl },

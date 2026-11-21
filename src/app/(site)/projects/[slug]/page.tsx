@@ -37,6 +37,7 @@ export default async function ProjectPage({ params }: Props) {
             <div className="mono flex flex-wrap items-center gap-2 text-[10px] text-muted">
               <StatusBadge status={project.status} />
               {project.year && <span>{project.year}</span>}
+              {project.updatedLabel && <span className="whitespace-nowrap opacity-70">Updated {project.updatedLabel}</span>}
             </div>
             <h1 className="hl m-0 text-[64px] md:text-[96px]">{project.title}</h1>
             {project.summary && <p className="m-0 max-w-[520px] text-base leading-[1.6] text-body">{project.summary}</p>}

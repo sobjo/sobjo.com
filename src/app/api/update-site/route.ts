@@ -2,8 +2,17 @@ import { NextResponse } from 'next/server'
 
 import { blobSha, serialize } from '@/app/(admin)/update-site/_lib/load'
 import { currentEditor } from '@/shared/lib/auth'
-import { CONTENT_PATHS, ContentError, cleanEntries, cleanProjects, type ContentKind } from '@/shared/lib/content-files'
-import { ConflictError, commitFiles, githubConfigured, type FileChange } from '@/shared/lib/github'
+import {
+  CONTENT_PATHS,
+  ContentError,
+  cleanEntries,
+  cleanProjects,
+  saveDay,
+  stampProjects,
+  type ContentKind,
+  type ProjectEntry,
+} from '@/shared/lib/content-files'
+import { ConflictError, commitFiles, githubConfigured, readTextFile, type FileChange } from '@/shared/lib/github'
 
 /*
  * Saves the /update-site editor's changes: checks who is signed in, checks the
@@ -23,6 +32,8 @@ interface SaveRequest {
   /** New photos, with paths inside public/. */
   uploads?: { path: string; data: string }[]
   message?: string
+  /** The day it is for the person saving, like "2026-11-20", used for projects' last updated date. */
+  today?: string
 }
 
 /** Checks the first bytes, so only real JPEG, PNG or WebP pictures get committed. */
@@ -51,15 +62,25 @@ export async function POST(request: Request) {
   if (body.kind !== 'projects' && body.kind !== 'notebook') return fail(400, 'Unknown content.')
   if (typeof body.sha !== 'string' || !/^[0-9a-f]{40}$/.test(body.sha)) return fail(400, 'Missing version.')
 
-  let text: string
+  const path = CONTENT_PATHS[body.kind]
+  const conflict = () =>
+    fail(409, 'Someone saved these since you opened the page. Reload to get their changes, then redo yours.')
+
+  let items: unknown[]
   try {
-    text = serialize(body.kind === 'projects' ? cleanProjects(body.items) : cleanEntries(body.items))
+    if (body.kind === 'projects') {
+      // Compare with the saved file, so only the projects this save changes get a new last updated date.
+      const saved = await readTextFile(path)
+      if (saved.sha !== body.sha) return conflict()
+      items = stampProjects(cleanProjects(body.items), JSON.parse(saved.text) as ProjectEntry[], saveDay(body.today))
+    } else {
+      items = cleanEntries(body.items)
+    }
   } catch (error) {
     if (error instanceof ContentError) return fail(400, error.message)
     throw error
   }
-
-  const path = CONTENT_PATHS[body.kind]
+  const text = serialize(items)
   const files: FileChange[] = [{ path, content: text, encoding: 'utf-8' }]
   for (const upload of body.uploads ?? []) {
     if (typeof upload?.path !== 'string' || !PHOTO_PATH.test(upload.path) || typeof upload.data !== 'string')
@@ -75,10 +96,10 @@ export async function POST(request: Request) {
 
   try {
     const { commitUrl } = await commitFiles({ files, message, guard: { path, sha: body.sha } })
-    return NextResponse.json({ ok: true, sha: blobSha(text), commitUrl })
+    // The items as saved (with any new dates), so the editor's copy matches the file.
+    return NextResponse.json({ ok: true, sha: blobSha(text), commitUrl, items })
   } catch (error) {
-    if (error instanceof ConflictError)
-      return fail(409, 'Someone saved these since you opened the page. Reload to get their changes, then redo yours.')
+    if (error instanceof ConflictError) return conflict()
     console.error('update-site save failed', error)
     return fail(502, 'GitHub refused the save. Check that GITHUB_TOKEN is valid and can write to the repo.')
   }

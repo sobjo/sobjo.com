@@ -18,6 +18,10 @@ const DRAWING_LABEL: Record<Illustration, string> = {
   idea: 'Napkin sketch',
 }
 
+const dayFormat = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+/** "2026-11-20" → "Nov 20, 2026". */
+const dayLabel = (day: string) => dayFormat.format(new Date(`${day}T00:00:00Z`))
+
 const TINT_LABEL = { sand: 'Sand', steel: 'Steel', blush: 'Blush', paper: 'Paper' } as const
 
 export function ProjectForm({
@@ -38,6 +42,8 @@ export function ProjectForm({
     photo: project.photo ? { ...project.photo, url: photos.src(project.photo.url) } : null,
     body: null,
     ctaLabel: project.ctaLabel || DEFAULT_CTA[project.status],
+    updatedAt: project.updatedAt ?? null,
+    updatedLabel: project.updatedAt ? dayLabel(project.updatedAt) : null,
   }
 
   return (
@@ -49,6 +55,7 @@ export function ProjectForm({
           <div className="mono flex flex-wrap items-center gap-2 text-[10px] text-muted">
             <StatusBadge status={project.status} />
             {project.year && <span>{project.year}</span>}
+            {preview.updatedLabel && <span className="whitespace-nowrap opacity-70">Updated {preview.updatedLabel}</span>}
             {project.featured && <span className="rounded bg-mist px-1.5 py-0.5">On the home page</span>}
           </div>
           <span className="hl text-[36px]">{project.title || 'Untitled'}</span>

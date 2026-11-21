@@ -45,6 +45,8 @@ function toProject(entry: ProjectEntry): Project {
     photo: fileImage(entry.photo),
     body: entry.body.trim() || null,
     ctaLabel: entry.ctaLabel || DEFAULT_CTA[entry.status],
+    updatedAt: entry.updatedAt ?? null,
+    updatedLabel: entry.updatedAt ? dateFormat.format(new Date(`${entry.updatedAt}T00:00:00Z`)) : null,
   }
 }
 
