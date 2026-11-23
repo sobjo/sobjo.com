@@ -27,15 +27,15 @@
       "gunnar",
       "ivanna"
     ],
-    "summary": "A cube that balances on one corner. Three reaction wheels inside spin up and brake to keep it standing.",
-    "tools": "[Parts and software]",
+    "summary": "A cube that balances on and edge or corner. Three reaction wheels inside spin up and brake to keep it standing.",
+    "tools": "ESP32-S3, ESP-IDF (FreeRTOS), C, MATLAB/Simulink, KiCad, Fusion360",
     "illustration": "cube",
     "tint": "steel",
     "featured": true,
     "ctaLabel": "Read the report",
     "photo": null,
-    "body": "",
-    "updatedAt": "2026-11-20"
+    "body": "The cubli is a self-balancing cube, it was 3D printed using PLA filament and includes a reaction wheel on three faces. It measures at 15.2cm and 0.945kg. The cube uses two 200Hz linear–quadratic regulators (LQR) controllers to keep the cube standing on an edge (one wheel) or on a corner (three wheels). When one-wheel speeds up or slows down, the controller pushes the other direction, allowing the cube to balance itself. MATLAB/Simulink was used to design and test the plant model and LQR design. The ESP-IDF was used to write the firmware which includes a test mode and a processor-in-the-loop (PIL) verification. KiCad was used to design the PCB board which was sent to JLCPCB for fabrication. Fusion 360 was used to design the cube and was used to print the frame, the reaction wheels and a pcb mount. After testing and tuning the LQR controllers, the Cubli was able to balance both on the edge and the corner for about 45 minutes before needing to recharge the batteries. Currently the cubli must be held in order for the controllers to start the balancing task, our goal for the future is to make it so that the cubli can stand up on its own without human assistance. \n\n## Hardware\nThe hardware was first designed and validated on a breadboard before being designed into KiCad. The components used for the cube include: an ESP32-S3-DevKitC-1, an ICM-20948 IMU, three Nidec 24H brushless motors with built-in drivers, a 4S LiPo (16.8 V full), a Mini560 5 V buck converter, and a 470 µF bulk capacitor. The Nidec's tacho outputs are open-collector and the S3 is not 5 V tolerant, so each tacho line goes through an MMBT2222A stage that pulls up to 3.3 V. Battery voltage reaches the ADC through a 47k/10k divider on ADC1, because ADC2 is unusable while Wi-Fi runs. The two-layer board was designed in the shape of a triangle in order for it to fit across one corner of the cube and it is screwed into three edges of the cube in order to keep it in place. Each motor has its own 8-pin screw terminal, so a motor can be swapped without soldering.\n\n![pcb](/uploads/projects/cubli-mwtlw2ge.jpg)\n**Figure 1.** The controller PCB (KiCad render). \n\n![Schematics](/uploads/projects/cubli-mwtlza8q.jpg)\n**Figure 2.** Schematic: the ESP32-S3 and IMU (top left); the battery switch, sense divider and buck converter (top right); and three identical motor interfaces with \ntheir tacho level-shifters (bottom).",
+    "updatedAt": "2026-11-23"
   },
   {
     "slug": "miniq",
