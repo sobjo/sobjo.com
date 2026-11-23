@@ -28,7 +28,7 @@
       "ivanna"
     ],
     "summary": "A cube that balances on and edge or corner. Three reaction wheels inside spin up and brake to keep it standing.",
-    "tools": "ESP32-S3, ESP-IDF (FreeRTOS), C, MATLAB/Simulink, KiCad, Fusion360",
+    "tools": "ESP32-S3 \nESP-IDF (FreeRTOS)\nC \nMATLAB/Simulink\nKiCad\nFusion360",
     "illustration": "cube",
     "tint": "steel",
     "featured": true,
