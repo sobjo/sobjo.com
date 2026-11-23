@@ -193,8 +193,9 @@ export function Editor({
     const kind = tab
     const items = strip(state[kind].items as (Item & { key: string })[])
     const text = JSON.stringify(items)
+    // A photo counts as used whether it's the cover ("url": "/uploads/…") or inside a write-up (![…](/uploads/…)).
     const uploads = Object.entries(photos)
-      .filter(([url, photo]) => !photo.committed && url.startsWith(`/uploads/${kind}/`) && text.includes(`"${url}"`))
+      .filter(([url, photo]) => !photo.committed && url.startsWith(`/uploads/${kind}/`) && text.includes(url))
       .map(([, photo]) => ({ path: photo.path, data: photo.data }))
 
     update(kind, (c) => ({ ...c, status: { kind: 'saving' } }))
